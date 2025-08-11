@@ -3,7 +3,6 @@
 # Cấu trúc phân cấp module top
 
 - [TurboEncode (Top)]()
-  <!-- - [punc]() -->
   - [DuobinaryCRSCEncode](#entity-duobinarycrscencode)
     - [INP](#entity-inp)
     - [PRE](#entity-pre)
@@ -26,7 +25,6 @@
 | Nc        | = `N` / 2 = `Block size` * 4| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền|
 
 
-<!-- 
 # Kết quả tổng hợp
 
 ||quyetdv WiMAX Turbo Encoder|Xilinx 802.16e CTC Encoder v3.0|Description|
@@ -40,7 +38,7 @@
 ![](img/imp.png)
 
 ![](img/imp-pc.png)
--->
+
 
 # Entity: DuobinaryCRSCEncode 
 - **File**: DuobinaryCRSCEncode.sv
@@ -219,7 +217,6 @@ Bước 2: Ánh xạ chuỗi các cặp giá trị
     u2(j) = u1(P(j))
   // Sau bước 2, u2 = [u1[P(0)], u1[P(1)], ..., u1[P(Nc-1)]]
 ```
-<!-- 
 ### Thiết kế phù hợp phần cứng
 
 Module `Interleaver` hoạt động tương tự như mô tả trên. Nhưng bỏ qua các bước tạo chuỗi `u1`, `u2` mà chỉ quan tâm tới việc tạo ra giá trị địa chỉ (chỉ số) đan xen `P(j)`, hay `o_idx_intl` tương ứng với giá trị địa chỉ (chỉ số) gốc `j`, hay `o_idx`.
@@ -274,7 +271,6 @@ else
 O là số chẵn và E là số lẻ. Có thể thấy chuỗi chỉ số Interleave P(j) bắt đầu với một giá trị lẻ, sau đó là chẵn, và cứ như vậy chuyển đổi giữa chỉ số chẵn và lẻ.
 
 Chúng ta bỏ qua việc tráo đổi cặp giá trị AB tại các vị trí lẻ như mô tả trong quá trình tạo chuỗi `u1` trong [Interleave process](#interleave-process), lưu trực tiếp từng cặp AB vào trong Memory. Khi cần tạo chuỗi giá trị đan xen `u2` chỉ cần tạo đọc từ các địa chỉ tương ứng với chuỗi `P(j)` nhưng giá trị đầu tiên đọc được (chỉ số gốc `j` là lẻ) sẽ cần tráo đổi cặp giá trị, giá trị tiếp theo thì không cần, cứ như vậy cho tới khi đọc được hết các cặp giá trị từ trong Memory.
--->
 
 # Entity: DualReadPortRAM
 
@@ -608,7 +604,6 @@ Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1,
 |5|0|2|5|7|1|3|4|6|
 |6|0|7|6|1|3|4|5|2|
 
-<!-- 
 # ~~Entity: BlkIntl~~ (UNUSED) 
 - **File**: BlkIntl.sv
 
@@ -734,4 +729,3 @@ Với $get\_ Tk(k, m, J) = 2^m(k \mod J) + BRO_m(\lfloor k / J \rfloor)$. Trong 
 |18|5|3||48|6|3||480|10|2|
 |24|5|3||54|6|4||600|10|3|
 |27|5|4||60|7|2||...|x|x|
--->
