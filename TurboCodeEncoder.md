@@ -599,7 +599,7 @@ Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1,
 
 #### Dựa trên tài liệu IEEE Std 802.16-2009 mục 8.4.9.2.3.3 Determination of CTC circulation states
 
-|Nc mod 7|S0N-1 = 0|S0N-1 = 1|S0N-1 = 2|S0N-1 = 3|S0N-1 = 4|S0N-1 = 5|S0N-1 = 6|S0N-1 = 7|
+|Nc mod 7|S0_{N-1} = 0|S0_{N-1} = 1|S0_{N-1} = 2|S0_{N-1} = 3|S0_{N-1} = 4|S0_{N-1} = 5|S0_{N-1} = 6|S0_{N-1} = 7|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 |1|0|6|4|2|7|1|3|5|
 |2|0|3|7|4|5|6|2|1|
