@@ -653,7 +653,7 @@ Lập trình đoạn mã sử dụng _MATLAB_ để mô phỏng quá trình tạ
 |24|0| 0||54|1|39||600|1|671|
 |27|1|19||60|1|15|
 
-$$\text{Độ hiệu quả} = \frac{Nc}{Nc + Total_{try}}$$
+$$\text{Độ hiệu quả} = \frac{Nc}{Nc + TotalTry}}$$
 
 Độ hiệu quả tối đa = 1 khi không có bất kỳ lần thử lại nào xuyên suốt toàn bộ quá trình. Độ hiệu quả thấp nhất = 0.7539 đối với trường hợp `Block size` = 36.
 
