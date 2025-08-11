@@ -58,7 +58,7 @@ $$u = [(A_0, B_0), (A_1, B_1), ..., (A_{Nc-1}, B_{Nc-1})]$$
 Chuỗi $u$ được thực hiện interleave (xáo trộn) $intl()$ thành chuỗi $u'$:
 
 $$
-u\' = intl(u) = [(A\'_0, B\'_0), (A\'_1, B\'_1), ..., (A\'_{Nc-1}, B\'_{Nc-1})]
+u' = intl(u) = [(A_0', B_0'), (A_1', B_1'), ..., (A_{Nc-1}', B_{Nc-1}')]
 $$
 
 Quá trình Precode thiết lập thanh ghi trạng thái $S$ về trạng thái $0$, thực hiện double binary Circular Recursive Systematic Convolutional Code (CRSC) encode chuỗi $u$ và chuỗi $u'$. Dựa trên trạng thái $S$ cuối cùng sau khi encode, tra bảng __Table 504—Circulation state lookup table (Sc)__ để có được trạng thái khởi tạo cho quá trình Encode.
