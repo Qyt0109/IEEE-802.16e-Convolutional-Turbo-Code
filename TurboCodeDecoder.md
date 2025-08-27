@@ -120,8 +120,11 @@ Hình dưới minh họa một khối RAM X chứa 4 phần tử, chuỗi địa
 |![](./img/Flow-FSM.png)|__done_IDLE__: Bắt đầu quá trình decode <br> __done_INIT__: Đã nhận toàn bộ LLRs cần thiết cho quá trình decode <br> __done_SISO__: SISO hoàn tất, kết thúc nửa vòng lặp quá trình decode <br> __done_cnt__: Đếm đủ số lượng vòng lặp cần decode|
 
 # Entity: SISO
+- **File**: SISO.sv
 
 ## Ports
+
+![](./img/SISO.png)
 
 ## Functional Description
 
@@ -167,7 +170,6 @@ while (!done) % Each half iteration
     is_interleave = !is_interleave;
 end
 ```
-![](./img/SISO.png)
 
 Sequence index $k \in [0,N_c-1]$, state $s \in \{000, 001, ..., 111\}$, input couple $i \in \{00, 01, 10, 11\}$
 
