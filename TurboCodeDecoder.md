@@ -102,7 +102,7 @@ Hình dưới minh họa một khối RAM X chứa 4 phần tử, chuỗi địa
 | rst                                  | input     |                | Reset đồng bộ khi `rst` = 1                                                             |
 | i_BLK_SIZE                           | input     | [9:0]          | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.  |
 | i_NINTER                             | input     | [7:0]          | Số vòng lặp giải mã                                                                     |
-| i_LLR_AB<br>i_LLR_Y1W1<br>i_LLR_Y2W2 | input     | [INP_DW*2-1:0] | Dữ liệu LLR đầu vào từ kênh AB, Y1W1, Y2W2                                  |
+| i_LLR_AB<br>i_LLR_Y1W1<br>i_LLR_Y2W2 | input     | signed [INP_DW*2-1:0] | Dữ liệu LLR đầu vào từ kênh AB, Y1W1, Y2W2                                  |
 | i_FD_IN                              | input     |                | First Data IN. Báo hiệu bắt đầu một chuỗi dữ liệu đầu vào mới                           |
 | o_INP_LAST                           | output    |                | Báo hiệu dữ liệu hợp lệ tiếp theo là mẫu cuối cùng, kết thúc chuỗi đầu vào của một block|
 | o_BLK_START                          | output    |                | Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ                          |
@@ -118,6 +118,352 @@ Hình dưới minh họa một khối RAM X chứa 4 phần tử, chuỗi địa
 |FSM States|Description|
 |:-:|-|
 |![](./img/Flow-FSM.png)|__done_IDLE__: Bắt đầu quá trình decode <br> __done_INIT__: Đã nhận toàn bộ LLRs cần thiết cho quá trình decode <br> __done_SISO__: SISO hoàn tất, kết thúc nửa vòng lặp quá trình decode <br> __done_cnt__: Đếm đủ số lượng vòng lặp cần decode|
+
+# Entity: SISO
+
+## Ports
+
+## Functional Description
+
+Mô tả thuật toán code C:
+``` Cpp
+// SISO thực hiện tính các tham số Gamma, Alpha, Beta
+gammaAtInputExtrinsic = findLogOfGammaForIntrinsic(inpLLR_EXT);
+[gamma_tmp, gammaForOutputExtrinsic] = calculLogGamma(LLR_ABYW);
+gamma = calculLogOfTurboGamma(gamma_tmp, gammaAtInputExtrinsic);
+alpha = calculLogAlpha(gamma);
+beta  = calculLogBeta (gamma);
+// Sử dụng Gamma, Alpha, Beta để tính thông tin trao đổi Ext và chuỗi bit giải mã decoded_AB.
+logProbability = calculLogProbability(alpha, beta, gamma);
+decoded_AB     = subMapTakeDecision(logProbability);
+outLLR_EXT_tmp = calculLogOutputExtrinsic(alpha, beta, gammaForOutputExtrinsic);
+outLLR_EXT     = calculLLRofOutputExtrinsic(outLLR_EXT_tmp);
+```
+
+Khi triển khai phần cứng:
+- __findLogOfGammaForIntrinsic__, __calculLogGamma__, __calculLogOfTurboGamma__ sẽ được merge thành khối __SISO_Gamma__ thực hiện __[gamma, gammaForOutputExtrinsic] = calculLogGammaMerge(LLR_ABYW, inpLLR_EXT)__ do việc tính toán trong các hàm trên có mối liên hệ với nhau.
+- __calculLogAlpha__ và __calculLogBeta__ lần lượt được triển khai thành khối __SISO_Alpha__ và __SISO_Beta__ tương ứng.
+- __calculLogProbability, subMapTakeDecision, calculLogOutputExtrinsic, calculLLRofOutputExtrinsic__ sẽ được merge thành khối __SISO_Ext__ thực hiện __[decoded_AB, outLLR_EXT] = calculLogExtMerge(alpha, beta, gamma, gammaForOutputExtrinsic)__.
+
+``` MATLAB
+% Init LLR RAM with A, B, Y1, Y2, W1, W2 and EXT LLRs.
+LLR_EXT = zeroes(); % EXT init with all 0's
+is_interleave = 0;
+LLR_RAM.store(is_interleave, LLR_A, LLR_B, LLR_Y, LLR_W, LLR_EXT);
+
+is_interleave = 1; % Start Decoding with interleave SISO first
+while (!done) % Each half iteration
+    % Load LLRs of A, B, Y1, W1, EXT or A', B', Y2, W2, EXT'
+    [LLR_A, LLR_B, LLR_Y, LLR_W, LLR_EXT]  = LLR_RAM.load(is_interleave);
+    [logGamma, logGammaForOutputExtrinsic] = SISO_Gamma(
+        LLR_A, LLR_B, LLR_Y, LLR_W, LLR_EXT
+    ); % Calculate Gamma
+    logAlpha              = SISO_Alpha(logGamma); % Calculate Alpha
+    logBeta               = SISO_Beta (logGamma); % Calculate Beta
+    [decoded_AB, LLR_EXT] = SISO_Ext  (
+        logGamma, logGammaForOutputExtrinsic
+    ); % Calculate Extrinsic infomation EXT and decoded AB
+    LLR_RAM.store(is_interleave, LLR_EXT); % Store EXT or EXT'
+    is_interleave = !is_interleave;
+end
+```
+![](./img/SISO.png)
+
+Sequence index $k \in [0,N_c-1]$, state $s \in \{000, 001, ..., 111\}$, input couple $i \in \{00, 01, 10, 11\}$
+
+### Find Gamma:
+```MATLAB
+function [logGamma, logGammaForOutputExtrinsic] = calculLogGammaMerge(
+    LLR_A, LLR_B, LLR_Y, LLR_W, LLR_EXT
+)
+    for k = 0:Nc-1
+        for s = 0:NState-1
+            for i = 0:NInp-1
+                output_ABYW = GetOutputSymbol(s, i);
+                [LLR_SYST, LLR_PAR] = calcul_LLR_SYST_LLR_PAR(
+                    output_ABYW, LLR_A[k], LLR_B[k], LLR_Y[k], LLR_W[k]
+                );
+                logGamma[k][s][i] = LLR_SYST + LLR_PAR + LLR_EXT[k][i];
+                logGammaForOutputExtrinsic[k][s][i] = LLR_PAR;
+            end
+        end
+    end
+end
+```
+
+```MATLAB
+function [LLR_SYST, LLR_PAR] = calcul_LLR_SYST_LLR_PAR(
+    output_ABYW, LLR_A, LLR_B, LLR_Y, LLR_W
+);
+    LLR_SYST_A = output_ABYW.A ? LLR_A : -LLR_A;
+    LLR_SYST_B = output_ABYW.B ? LLR_B : -LLR_B;
+    LLR_PAR_Y  = output_ABYW.Y ? LLR_Y : -LLR_Y;
+    LLR_PAR_W  = output_ABYW.W ? LLR_W : -LLR_W;
+    LLR_SYST   = LLR_SYST_A + LLR_SYST_B;
+    LLR_PAR    = LLR_PAR_Y  + LLR_PAR_W;
+end
+```
+
+### Find Alpha
+
+```MATLAB
+function logAlpha = calculLogAlpha(logGamma)
+    % Calculate Prelog of Alpha by:
+    % 1. Init Alpha at k = Nc - nbSymbolsOfTheProlog to all ln(1/NState)
+    % 2. Following the Trellis from k = Nc - nbSymbolsOfTheProlog to Nc to accumulate Prelog Alpha
+    k = Nc - nbSymbolsOfTheProlog
+    for s = 0:NState-1
+        logAlpha[k][s] = ln(1/NState) = ln(1/8);
+    end
+    for k = Nc-nbSymbolsOfTheProlog+1:Nc
+        for s = 0:NState-1
+            for i = 0:NInp-1
+                forward_state = GetForwardState(s, i);
+                tmp_logAlpha[i] = logAlpha[k-1][s] + logGamma[k-1][s][i];
+                logAlpha[k][forward_state] = max(tmp_logAlpha);
+            end
+        end
+    end
+
+    % Final Prolog Alpha at last k = Nc is then be used as initial value at k = 0 in Calculating Alpha process
+    for s = 0:NState-1
+        init_logAlpha[s] = logAlpha[Nc][s];
+    end
+    
+    % Calculate Prelog of Alpha by:
+    % 1. Init Alpha at k = 0 to the final Alpha of the Prelog process
+    % 2. Following the Trellis from k = 1 to Nc to accumulate Alpha
+    k = 0
+    for s = 0:NState-1
+        logAlpha[k][s] = init_logAlpha[s];
+    end
+    for k = 1:Nc
+        for s = 0:NState-1
+            for i = 0:NInp-1
+                forward_state = GetForwardState(s, i);
+                tmp_logAlpha[i] = logAlpha[k-1][s] + logGamma[k-1][s][i];
+                logAlpha[k][forward_state] = max(tmp_logAlpha);
+            end
+        end
+    end
+end
+```
+
+### Find Beta
+
+```MATLAB
+function logBeta = calculLogBeta(logGamma)
+    % Calculate Prelog of Beta by:
+    % 1. Init Beta at k = 0 + nbSymbolsOfTheProlog to all ln(1/NState)
+    % 2. Following the Trellis from k = 0 + nbSymbolsOfTheProlog to 0 to accumulate Prelog Beta
+    k = 0 + nbSymbolsOfTheProlog
+    for s = 0:NState-1
+        logBeta[k][s] = ln(1/NState) = ln(1/8);
+    end
+    for k = 0+nbSymbolsOfTheProlog:0
+        for s = 0:NState-1
+            for i = 0:NInp-1
+                forward_state = GetForwardState(s, i);
+                tmp_logBeta[i] = logBeta[k+1][forward_state] + logGamma[k][s][i];
+                logBeta[k][forward_state] = max(tmp_logBeta);
+            end
+        end
+    end
+
+    % Final Prolog Beta at last k = 0 is then be used as initial value at k = Nc in Calculating Beta process
+    for s = 0:NState-1
+        init_logBeta[s] = logBeta[0][s];
+    end
+    
+    % Calculate Prelog of Beta by:
+    % 1. Init Beta at k = Nc to the final Beta of the Prelog process
+    % 2. Following the Trellis from k = Nc-1 to 0 to accumulate Beta
+    k = Nc
+    for s = 0:NState-1
+        logBeta[k][s] = init_logBeta[s];
+    end
+    for k = Nc-1:0
+        for s = 0:NState-1
+            for i = 0:NInp-1
+                forward_state = GetForwardState(s, i);
+                tmp_logBeta[i] = logBeta[k+1][forward_state] + logGamma[k][s][i];
+                logBeta[k][forward_state] = max(tmp_logBeta);
+            end
+        end
+    end
+end
+```
+
+### Find EXT and decoded AB
+
+```MATLAB
+function [outputExtrinsic, decoded_AB] = calculLogExtMerge(
+    logAlpha, logBeta, logGamma, logGammaForOutputExtrinsic
+)
+    FP_FeedBackCoeff = 24; FP_Q = 5; % fixed-point const
+    for k = 0:Nc-1
+        for i = 0:NInp-1
+            for s = 0:NState-1
+                forward_state = GetForwardState(s, i);
+                tmp_logProbability[k][i][s] = logAlpha[k][s] + logBeta[k+1][forward_state] + logGamma[k][s][i];
+                tmp_logOutputExtrinsic[k][i][s] = logAlpha[k][s] + logBeta[k+1][forward_state] + logGammaForOutputExtrinsic[k][s][i];
+            end
+            logProbability    [k][i] = max(tmp_logProbability    [k][i]);
+            logOutputExtrinsic[k][i] = max(tmp_logOutputExtrinsic[k][i]);
+        end
+        
+        decoded_AB[k] = max_idx(logProbability[k]);  % Which input AB (0-3) have highest log probability
+        maxExt    [k] = max(logOutputExtrinsic[k]);
+
+        for i = 0:NInp-1
+            outputExtrinsic[k][i] = (FP_FeedBackCoeff * (logOutputExtrinsic[k][i] - maxExt[k])) >> FP_Q;
+        end
+    end
+
+end
+```
+
+### Trellis Functions
+
+Trạng thái tiếp theo và đầu ra dựa trên trạng thái hiện tại và đầu vào:
+
+![](./img/Trellis_forward.png)
+
+Trạng thái trước đó dựa trên trạng thái hiện tại và đầu vào:
+
+![](./img/Trellis_backward.png)
+
+```MATLAB
+function output_ABYW = GetOutputSymbol(state, AB)
+    case (state)
+        0, 1: case (AB)
+            0, 3: YW = 0;
+            1, 2: YW = 3;
+        endcase
+        2, 3: case (AB)
+            0, 3: YW = 2;
+            1, 2: YW = 1;
+        endcase
+        4, 5: case (AB)
+            0, 3: YW = 3;
+            1, 2: YW = 0;
+        endcase
+        6, 7: case (AB)
+            0, 3: YW = 1;
+            1, 2: YW = 2;
+        endcase
+    endcase
+    output_ABYW = [AB, YW];
+end
+```
+
+```MATLAB
+function forward_state = GetForwardState(state, AB)
+    case (state)
+        0: case (AB)
+            0: forward_state = 0;
+            1: forward_state = 7;
+            2: forward_state = 4;
+            3: forward_state = 3;
+        endcase
+        1: case (AB)
+            0: forward_state = 4;
+            1: forward_state = 3;
+            2: forward_state = 0;
+            3: forward_state = 7;
+        endcase
+        ...
+    endcase
+end
+```
+
+```MATLAB
+function backward_state = GetBackwardState(state, AB)
+    case (state)
+        0: case (AB)
+            0: forward_state = 0;
+            1: forward_state = 6;
+            2: forward_state = 1;
+            3: forward_state = 7;
+        endcase
+        1: case (AB)
+            0: forward_state = 2;
+            1: forward_state = 4;
+            2: forward_state = 3;
+            3: forward_state = 5;
+        endcase
+        ...
+    endcase
+end
+```
+
+### Nhận xét
+
+Giả sử có thể truy cập random access vào bất kỳ phần tử tại vị trí $k$ chuỗi LLR của A, B, Y, W, EXT, tham số Gamma tại vị trí đó có thể được tính một cách dễ dàng theo công thức đã trình bày trước đó.
+
+Tham số Alpha yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace xuôi (forward) từ điểm bắt đầu ($k = Nc - nbSymbolsOfTheProlog$ đối với tìm Prelog Alpha và $k = 0$ đối với tìm Alpha) cho tới điểm kết thúc $k = Nc$. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí $k-1$ trước đó khi muốn tính Alpha tại vị trí $k$.
+
+Tham số Beta yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace ngược (backward) từ điểm bắt đầu ($k = 0 + nbSymbolsOfTheProlog$ đối với tìm Prelog Beta và $k = Nc$ đối với tìm Beta) cho tới điểm kết thúc $k = 0$. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí $k+1$ sau đó khi muốn tính Beta tại vị trí $k$.
+
+Alpha và Beta yêu cầu Gamma để tính, không cần RAM dể lưu Gamma vì có thể đọc trực tiếp từ các LLR RAM tại vị trí tương ứng để tính.
+
+EXT và decoded_AB yêu cầu Alpha, Beta, Gamma tại vị trí tương ứng, có thể tính đồng thời chuỗi Alpha và Beta rồi lần lượt lưu vào Alpha RAM, Beta RAM tuy nhiên vẫn phải chờ cho tới khi toàn bộ chuỗi đã được ghi vào trong RAM để bắt đầu tính toán. Thay vào đó có thể tính Alpha hoặc Beta trước và lưu vào RAM, sau đó tính tham số còn lại đến đâu sẽ tính được EXT và decoded_AB đến đó nên không yêu cầu RAM để lưu trữ. Việc tính toán Beta trước, Alpha sau sẽ có lợi hơn vì chuỗi EXT và decoded_AB sẽ theo chiều tính Alpha (xuôi theo chiều Trellis).
+
+# Entity: SISO_Alpha 
+- **File**: SISO_Alpha.sv
+
+## Diagram
+
+![](./img/top_SISO_Alpha.png)
+
+## Generics
+
+| Generic name | Type | Value | Description   |
+| ------------ | ---- | ----- | ------------- |
+| EXT_DW       |      | 16    | Data Width    |
+
+## Ports
+
+| Port name    | Direction | Type  | Description                                                                             |
+| ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
+| ~~rst~~      | ~~input~~ |       | ~~Reset đồng bộ khi `rst` = 1.~~                                                        |
+| i_logGamma   | input     | signed [EXT_DW-1:0] [NState][NInp]|Tham số Gamma được sử dụng cho tính toán|
+| i_logAlpha   | input     | signed | Tham số Alpha khởi tạo cho quá trình Precode Alpha hoặc quá trình tính Alpha|
+| i_start      | input     |       | Khởi tạo Alpha. Khi kích hoạt, thanh ghi `prev_logAlpha` được lưu trữ giá trị từ `i_logAlpha`|
+| i_valid      | input     |       | Tính toán Alpha tại chỉ số kế tiếp trong chuỗi. Khi kích hoạt, `i_logGamma` và `prev_logAlpha` sẽ được dùng để tính toán và cập nhật giá trị cho `prev_logAlpha`.|
+| o_logAlpha   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Alpha tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logAlpha`.|
+| o_valid      | output    |       | Đầu ra `o_logAlpha` hợp lệ. |
+
+# Entity: SISO_Beta
+- **File**: SISO_Beta.sv
+
+## Diagram
+
+![](./img/top_SISO_Beta.png)
+
+## Generics
+
+| Generic name | Type | Value | Description   |
+| ------------ | ---- | ----- | ------------- |
+| EXT_DW       |      | 16    | Data Width    |
+
+## Ports
+
+| Port name    | Direction | Type  | Description                                                                             |
+| ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
+| ~~rst~~      | ~~input~~ |       | ~~Reset đồng bộ khi `rst` = 1.~~                                                        |
+| i_logGamma   | input     | signed [EXT_DW-1:0] [NState][NInp]|Tham số Gamma được sử dụng cho tính toán|
+| i_logBeta    | input     | signed | Tham số Beta khởi tạo cho quá trình Precode Beta hoặc quá trình tính Beta|
+| i_start      | input     |       | Khởi tạo Beta. Khi kích hoạt, thanh ghi `prev_logBeta` được lưu trữ giá trị từ `i_logBeta`|
+| i_valid      | input     |       | Tính toán Beta tại chỉ số kế tiếp trong chuỗi. Khi kích hoạt, `i_logGamma` và `prev_logBeta` sẽ được dùng để tính toán và cập nhật giá trị cho `prev_logBeta`.|
+| o_logBeta   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Beta tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logBeta`.|
+| o_valid      | output    |       | Đầu ra `o_logBeta` hợp lệ. |
+
+
+
+
 
 
 
