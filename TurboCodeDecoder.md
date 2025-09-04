@@ -332,6 +332,10 @@ Khối SISO sẽ sử dụng 2 trạng thái, trạng thái chính __cstate__ v�
 | o_logAlpha   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Alpha tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logAlpha`.|
 | o_valid      | output    |       | Đầu ra `o_logAlpha` hợp lệ. |
 
+## Wave
+
+![](./wave/SISO_Alpha.png)
+
 ## Functional Descriptions
 
 ### Find Alpha
@@ -409,6 +413,10 @@ Module __SISO_Alpha__ thực hiện việc tính toán tham số Alpha xuôi the
 | o_logBeta   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Beta tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logBeta`.|
 | o_valid      | output    |       | Đầu ra `o_logBeta` hợp lệ. |
 
+## Wave
+
+![](./wave/SISO_Beta.png)
+
 ## Functional Description
 
 ### Find Beta
@@ -461,6 +469,8 @@ end
 
 ## Diagram
 
+None
+
 ![](./img/top_SISO_Gamma.png)
 
 ## Generics
@@ -474,12 +484,17 @@ end
 
 | Port name    | Direction | Type  | Description                                                                             |
 | ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
 |i_LLR_A<br>i_LLR_B<br>i_LLR_Y<br> i_LLR_W| input | signed [INP_DW-1:0] | LLR để tính Gamma|
 |i_LLR_EXT| input | signed [EXT_DW-1:0] [NInp] | LLR của thông tin trao đổi |
 |i_valid| input | | Các LLR đầu vào hợp lệ|
 |o_logGamma| output | [EXT_DW-1:0] [NState][NInp] | Giá trị tham số Gamma cho tính toán Alpha, Beta |
 |o_logGammaForOutputExtrinsic| output | [EXT_DW-1:0] [NState][NInp] | Giá trị tham số Gamma cho tính toán thông tin trao đổi Extrinsic |
 |o_valid|output||Đầu ra hợp lệ|
+
+## Wave
+
+![](./wave/SISO_Gamma.png)
 
 ## Functional Description
 
@@ -517,6 +532,36 @@ end
 ```
 
 # Entity: SISO_Ext
+
+- **File**: SISO_Ext.sv
+
+## Diagram
+
+None
+
+## Generics
+
+| Generic name | Type | Value | Description   |
+| ------------ | ---- | ----- | ------------- |
+| EXT_DW           |      | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
+| EXT_FW           |      | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
+| EXT_FeedBackCoeff | | 24 | Hệ số để tính thông tin trao đổi|
+
+## Ports
+
+| Port name    | Direction | Type  | Description                                                                             |
+| ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
+| i_logGamma<br>i_logGammaForOutputExtrinsic | input | signed [EXT_DW-1:0] [NState][NInp] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu |
+| i_logAlpha<br>i_logBeta | input | signed [EXT_DW] [NState] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu |
+| i_valid | input | | Các tham số đầu vào hợp lệ |
+| o_logExt | output | signed [EXT_DW-1:0] [NInp] | Thông tin trao đổi cho nửa vòng lặp giải mã kế tiếp |
+| o_decoded_AB | output | [1:0] | Đầu ra dữ liệu sau giải mã |
+| o_valid | output | | Đầu ra hợp lệ |
+
+## Wave
+
+![](./wave/SISO_Ext.png)
 
 ## Functional Description
 
