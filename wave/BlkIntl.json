@@ -1,0 +1,11 @@
+{
+  config: {hscale:2},
+  signal: [
+  {name: 'clk', 				wave: 'P.....|....'},
+  {name: 'i_start', 			wave: '01010.|....'},
+  {name: '[9:0] i_BLK_SIZE',   	wave: 'x2x3x.|....', data: ["n/4", "m/4"]},
+  {name: '[11:0] o_Tk', 	    wave: '2.2333|332.', data: ["Tk0", "Tk1", "Tk0", "Tk1", "...", "Tk m-2", "Tk m-1", "Tk 0"]},
+  {},
+  {name: '[9:0] blk_size', 		wave: 'x.2.3.|....', data: ["n/4", "m/4", "..."]},
+  {name: 'FSM cstate', 			wave: '6.9...|..6.', data: ["IDLE", "RUN", "IDLE", "RUN"]},
+]}

@@ -1,0 +1,14 @@
+{ config: {'hscale': 2},
+  signal: [
+  {name: 'clk', 				wave: 'P...|.....|'},
+  {name: 'o_ready', 			wave: '1.0.|..10.|',},
+  {name: 'i_start', 			wave: '01x.|..1x.|'},
+  {name: '[9:0] i_BLK_SIZE',   	wave: 'x2x.|..3x.|', data: ["n/4", "m/4"]},
+  {name: 'o_valid',           	wave: '01.....1...'},
+  {name: '[11:0] o_idx', 		wave: '2.22|22333|', data: ["0", "1", "...", "n-2", "n-1", "0", "1", "..."]},
+  {name: '[11:0] o_idx_intl',	wave: '2.22|22333|', data: ["intl[0] = 1", "intl[1]", "...", "intl[n-2]", "intl[n-1]", "intl[0] = 1", "intl[1]", "..."]},
+  {name: 'o_last',           	wave: '0...|.10...'},
+    {},
+  {name: '[9:0] blk_size', 		wave: 'x.2.|...33|', data: ["n/4", "m/4", "..."]},
+  {name: 'FSM cstate', 			wave: '6.9.|..69.|', data: ["IDLE", "INTL", "IDLE", "INTL"]},
+]}

@@ -1,0 +1,39 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+        {name: 'clk', 				wave: 'P.....|...'},
+      	//[
+        //  	'Controls',
+        //	{name: 'i_blk_size',	wave: '2.....|...', data: ['blk_sz']},
+        //	{name: 'i_start', 		wave: '010...|...'},
+        //],
+        [
+            'Interleaver_Extra',
+          	{name: 'i_intl_ready',	wave: '1.0...|.1.'},
+          	{name: 'o_intl_start',	wave: '010...|...',
+             node: '..a'},
+          	{name: 'o_intl_prolog',	wave: 'x2x...|...'},
+          	{name: 'o_intl_reverse',wave: 'x2x...|...'},
+         	{name: 'i_intl_start',	wave: '0.10..|...',
+             node: '...b'},
+          	{name: 'i_intl_last',	wave: '0.....|10.',
+             node:'........x'},
+        ],
+        [
+            'LLR RAMs',
+          	{name: 'i_LLRs',		wave: 'x..222|22x', data: ['[0]', '[1]', '...', '[X-2]', '[X-1]']},
+          	{name: 'i_valid',		wave: '0..1..|..0',
+             node:'....c....y'},
+        ],
+    ],
+    edge: [
+          'a~>b',
+          'b~>c',
+          'x~>y'
+    ],
+    head: {
+        text: 'SISO example wave - Driving input signals',
+        tick: 0,
+        every: 1
+    }
+}

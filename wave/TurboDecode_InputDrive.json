@@ -1,0 +1,31 @@
+{
+ 	config: {hscale: 1},
+    signal: [
+        {name: 'clk', 				wave: 'P.....|.....'},
+      	[
+          	'Configs',
+        	{name: 'i_BLK_SIZE',	wave: 'x2x...|.....', data: ['blk_sz']},
+        	{name: 'i_NITER', 		wave: 'x2x...|.....', data: ['niter']},
+        ],
+        [
+            'Input',
+            {name: 'i_FD_IN', 		wave: '010...|.....',
+             // node: '..a'
+            },
+            {name: 'o_RFFD',		wave: '1.0...|.....',
+             // node: '..b'
+            },
+            {name: 'o_INP_LAST',	wave: '0.....|.1..0'},
+            {name: 'i_LLRs' , 		wave: 'x22x22|2x.2x', data: ['[0]', '[1]', '[2]', '...', '[Nc-2]', '[Nc-1]']},
+            {name: 'i_DATA_VALID', 	wave: '01.01.|.0.10'}
+        ],
+    ],
+    edge: [
+    	// 'a->b'
+    ],
+    head: {
+        text: 'TurboDecode example wave - Driving input signals',
+        tick: 0,
+        every: 1
+    }
+}

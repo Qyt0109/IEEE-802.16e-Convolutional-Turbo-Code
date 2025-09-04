@@ -1,0 +1,16 @@
+{
+    config: {hscale: 2},
+    signal: [
+        {name: 'clk', 			wave: 'P...|..'},
+        {name: 'o_decoded_AB' , wave: 'x222|2x', data: ['[0]', '[1]', '...', '[Nc-1]']},
+        {name: 'o_valid', 		wave: '01..|.0'},
+        {name: 'o_START',	wave: '010.|..'},
+        {name: 'o_LAST',	wave: '0...|10'},
+		{name: 'o_RFFD',		wave: '0...|.1'},
+    ],
+    head: {
+      text: 'TurboDecode example wave - Driving output signals',
+      tick: 0,
+      every: 1
+    }
+}

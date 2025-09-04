@@ -1,0 +1,19 @@
+{signal: [
+  {name: 'clk', 				wave: 'P............', "tick":1},
+  {name: 'i_state_valid', 		wave: '010.....10...',},
+  {name: '[2:0] i_state', 		wave: 'x4x.....5x...', data: ['S', 's']},
+  {name: 'i_valid',   			wave: '0.1.0.1..1.0.'},
+  {name: '[1:0] i_AB', 			wave: 'x.44x.44455x.', data: ["AB0", "AB1", "AB2", "AB3", "AB4", "ab0", "ab1"]},
+  {name: '[1:0] o_AB', 			wave: 'x..44..44455.', data: ["AB0", "AB1", "AB2", "AB3", "AB4", "ab0", "ab1"]},
+  {name: 'o_Y', 				wave: 'x..44..44455.', data: ["Y0", "Y1", "Y2", "Y3", "Y4", "y0", "y1"]},
+  {name: 'o_W', 				wave: 'x..44..44455.', data: ["W0", "W1", "W2", "W3", "W4", "w0", "w1"]},
+  {name: '[2:0] o_state', 		wave: 'x..44..44455.', data: ["S0", "S1", "S2", "S3", "S4", "s0", "s1"]},
+  {name: 'o_valid', 			wave: '0..1.0.1....0', data: ["ab0", "ab1", "...", "abn-2]", "abn-1", "AB0", "AB1", "..."]},
+  {},
+  {name: '[2:0] state', 		wave: 'x.444..44555.', data: ["S", "S0", "S1", "S2", "S3", "s", "s0", "s1"]},
+],
+ head:{
+   text:'CRSC example wave',
+   tick:0,
+   every:1
+ },}
