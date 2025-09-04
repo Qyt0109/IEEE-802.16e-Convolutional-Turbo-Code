@@ -1,0 +1,28 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+        {name: 'clk', 					wave: 'P...|...'},
+        [
+            'Calculate',
+          	{name: 'i_LLRs', 			wave: 'x342|5x.', data: ['', '', '...'],
+             node: '..a'
+            },
+            {name: 'i_valid',			wave: '01..|.0.'},
+            {name: 'o_logGamma',		wave: 'x.32|65x', data: ['', '...'],
+             node: '...x'
+            }, 
+          	{name: 'o_log...Extrinsic',	wave: 'x.32|65x', data: ['', '...'],
+             node: '...y'
+            }, 
+            {name: 'o_valid' , 			wave: '0.1.|..0'},
+        ],
+    ],
+    edge: [
+    	'a~>x', 'a~>y'
+    ],
+    head: {
+        text: 'SISO_Gamma example wave',
+        tick: 0,
+        every: 1
+    }
+}

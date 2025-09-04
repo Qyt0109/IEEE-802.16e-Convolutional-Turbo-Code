@@ -1,0 +1,27 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+        {name: 'clk', 				wave: 'P...........'},
+        {name: 'i_log*', 			wave: 'x34x5x......',
+         node: '..a'
+        },
+        {name: 'i_valid',			wave: '01.010......'},
+        {name: 'o_logExt',			wave: 'x......34x5x',
+         node: '........x'
+        },
+        {name: 'o_decoded_AB',		wave: 'x......34x5x',
+         node: '........y'
+        }, 
+        {name: 'o_valid' , 			wave: '0......1.010'},
+    	{node: '..i.....j'},
+    ],
+    edge: [
+    	'a~>x', 'a~>y',
+        'i<->j 6 clk latency', 'a-i', 'x-j'
+    ],
+    head: {
+        text: 'SISO_Ext example wave',
+        tick: 0,
+        every: 1
+    }
+}
