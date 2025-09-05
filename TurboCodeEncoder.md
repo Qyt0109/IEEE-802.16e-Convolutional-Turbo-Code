@@ -178,8 +178,9 @@ Quá trình đan xen (Interleave) phụ thuộc vào các tham số Nc, P0, P1, 
 |     27     | 108  | 11  | 54  | 56  |  2  |
 |     30     | 120  | 13  | 60  |  0  | 60  |
 |     36     | 144  | 17  | 74  | 72  |  2  |
-|     40     | 180  | 11  | 90  |  0  | 90  |
+|     45     | 180  | 11  | 90  |  0  | 90  |
 |     48     | 192  | 11  | 96  | 48  | 144 |
+|     54     | 216  | 13  | 108 | 0   | 108 |
 |     60     | 240  | 13  | 120 | 60  | 180 |
 |    120     | 480  | 53  | 62  | 12  |  2  |
 |    240     | 960  | 43  | 64  | 300 | 824 |
@@ -509,7 +510,7 @@ Cấu trúc bên trong:
 | --------------------- | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | clk                   | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                                                                                                                                                     |
 | rst                   | input     |        | Reset đồng bộ khi `rst` = 1.                                                                                                                                                                                    |
-| i_start               | input     |        | First Data IN. Báo hiệu bắt đầu Precode một chuỗi dữ liệu mới                                                                                                                                                   |
+| i_start               | input     |        | Báo hiệu bắt đầu Precode một chuỗi dữ liệu mới                                                                                                                                                   |
 | i_BLK_SIZE            | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.                                                                                                                          |
 | o_ren                 | output    |        | Read Enable                                                                                                                                                                                                     |
 | o_raddr_A             | output    | [11:0] | Read Address - port A. Địa chỉ đọc cặp dữ liệu AB từ port A của Memory. Địa chỉ đọc từ port A là tuần tự 0, 1, ..., Nc-1 và tương ứng với chỉ số tự nhiên (natural/non-interleave index).                       |
@@ -529,7 +530,7 @@ Cấu trúc bên trong:
 
 ## Functional description
 
-Khối Interleaver tạo cặp địa chỉ tuần tự và địa chỉ đan xen, lần lượt đọc các cặp dữ liệu AB từ Memory với địa chỉ tương ứng. Lưu ý rằng tại kênh đan xen, cặp AB đầu tiên đọc được sẽ cần tráo đổi vị trí, cặp tiếp theo thì không cần, cứ như vậy đọc từ Memory (như được mô tả trong [Interleaver](#entity-interleaver)).
+Khối PRE yêu cầu khối Interleaver tạo cặp địa chỉ tuần tự và địa chỉ đan xen, lần lượt đọc các cặp dữ liệu AB từ Memory với địa chỉ tương ứng. Lưu ý rằng tại kênh đan xen, cặp AB đầu tiên đọc được sẽ cần tráo đổi vị trí, cặp tiếp theo thì không cần, cứ như vậy đọc từ Memory (như được mô tả trong [Interleaver](#entity-interleaver)).
 
 Chuỗi các cặp AB đọc được từ địa chỉ tuần tự và đan xen sẽ được đưa vào khối CRSC encoder tương ứng để thực hiện quá trình Precoding. Trạng thái cuối cùng sau quá trình trên sẽ được chuyển đổi thành trạng thái bắt đầu của quá trình Encode thông qua việc tra [CircStateLUT](#entity-circstatelut).
 
@@ -547,7 +548,7 @@ Việc tra CircStateLUT yêu cầu tính Nc mod 7 tuy nhiên phép tính mod tr�
 | --------------------- | --------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | clk                   | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                                                                                                                                  |
 | rst                   | input     |        | Reset đồng bộ khi `rst` = 1.                                                                                                                                                                 |
-| i_start               | input     |        | First Data IN. Báo hiệu bắt đầu Encode một chuỗi dữ liệu mới                                                                                                                                 |
+| i_start               | input     |        | Báo hiệu bắt đầu Encode một chuỗi dữ liệu mới                                                                                                                                 |
 | i_BLK_SIZE            | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.                                                                                                       |
 | i_enc_init_state      | input     | [2:0]  | Trạng thái khởi tạo CRSC encoder tự nhiên                                                                                                                                                    |
 | i_enc_intl_init_state | input     | [2:0]  | Trạng thái khởi tạo CRSC encoder đan xen                                                                                                                                                     |
@@ -604,7 +605,7 @@ Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1,
 |5|0|2|5|7|1|3|4|6|
 |6|0|7|6|1|3|4|5|2|
 
-# ~~Entity: BlkIntl~~ (UNUSED) 
+<!-- # ~~Entity: BlkIntl~~ (UNUSED) 
 - **File**: BlkIntl.sv
 
 ## Diagram
@@ -728,4 +729,4 @@ Với $get\_ Tk(k, m, J) = 2^m(k \mod J) + BRO_m(\lfloor k / J \rfloor)$. Trong 
 |12|4|3||45|6|3||360|9|3|
 |18|5|3||48|6|3||480|10|2|
 |24|5|3||54|6|4||600|10|3|
-|27|5|4||60|7|2||...|x|x|
+|27|5|4||60|7|2||...|x|x| -->
