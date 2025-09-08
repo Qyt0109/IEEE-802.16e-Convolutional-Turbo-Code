@@ -165,7 +165,7 @@ Trong thiết kế Turbo Encoder IP:
 Với cài đặt đó, thiết kế có thể hỗ trợ tối đa số lần encode liên tiếp `k` với block size tương ứng:
 ```C
 k(BLK_SIZE) = floor(
-    OUT_impl_depth / Out_depth(BLK_SIZE)
+    OUT_impl_depth / OUT_depth(BLK_SIZE)
 )
 ```
 
