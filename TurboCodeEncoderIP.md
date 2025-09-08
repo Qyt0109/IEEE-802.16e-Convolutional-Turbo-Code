@@ -121,13 +121,17 @@ _Transfer #5_
 Trong 1 lần encode:
 
 Độ sâu INP FIFO `INP_depth` cần thiết để lưu trữ các transfers cho INP với thiết lập `BLOCK_SIZE`:
-
-$INP\_depth = \lceil \frac{BLK\_SIZE * 8}{S\_DATA\_DW} \rceil$
-
+```C
+INP_depth = ceil(
+    (BLK_SIZE * 8) / S_DATA_DW
+)
+```
 Độ sâu OUT FIFO `OUT_depth` cần thiết để lưu trữ các transfers cho OUT với thiết lập `BLOCK_SIZE`:
-
-$OUT\_depth = \lceil \frac{BLK\_SIZE * 8 * 3}{\lfloor S\_DATA\_DW / 6\rfloor * 6} \rceil$
-
+```C
+OUT_depth = ceil(
+    (BLK_SIZE * 8 * 3) / (floor(S_DATA_DW / 6) * 6)
+)
+```
 #### Ví dụ với S_DATA_DW = 64
 
 | BLK_SIZE<br>(bytes) | INP_depth<br>(AXI transfers) | OUT_depth<br>(AXI transfers) | BLK_SIZE<br>(bytes) | INP_depth<br>(AXI transfers) | OUT_depth<br>(AXI transfers) |
@@ -159,10 +163,11 @@ Trong thiết kế Turbo Encoder IP:
 - OUT_impl_depth: 1024
 
 Với cài đặt đó, thiết kế có thể hỗ trợ tối đa số lần encode liên tiếp `k` với block size tương ứng:
-
-$ k(BLK\_SIZE) = \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor$
-
-<!-- $$ k(BLK\_SIZE) = min( \lfloor \frac{\text{INP_impl_depth}}{INP\_depth(BLK\_SIZE)} \rfloor, \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor, CFIG\_impl\_depth)$$ -->
+```C
+k(BLK_SIZE) = floor(
+    OUT_impl_depth / Out_depth(BLK_SIZE)
+)
+```
 
 | BLK_SIZE<br>(bytes) | k<br>(lần encode) | BLK_SIZE<br>(bytes) | k<br>(lần encode) |
 |:-:|:--:|:-:|:-:|
@@ -193,6 +198,4 @@ $ k(BLK\_SIZE) = \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor$
 | rd_en | output | | Pull dữ liệu từ FIFO |
 | data_count | input | [AW-1:0] | Optional. Số lượng phần tử dữ liệu hiện có trong FIFO |
 
-
 **NOTE**: WR và RD ports hoạt động đồng bộ. FIFO mặc định được triển khai với cài đặt First Word Fall Throught và Read Before Write.
-
