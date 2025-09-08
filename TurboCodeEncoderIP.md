@@ -162,7 +162,7 @@ Với cài đặt đó, thiết kế có thể hỗ trợ tối đa số lần e
 
 $$ k(BLK\_SIZE) = \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor$$
 
-<!-- $$ k(BLK\_SIZE) = min( \lfloor \frac{INP\_impl\_depth}{INP\_depth(BLK\_SIZE)} \rfloor, \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor, CFIG\_impl\_depth)$$ -->
+<!-- $$ k(BLK\_SIZE) = min( \lfloor \frac{\text{INP_impl_depth}}{INP\_depth(BLK\_SIZE)} \rfloor, \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor, CFIG\_impl\_depth)$$ -->
 
 | BLK_SIZE<br>(bytes) | k<br>(lần encode) | BLK_SIZE<br>(bytes) | k<br>(lần encode) |
 |:-:|:--:|:-:|:-:|
@@ -192,5 +192,6 @@ $$ k(BLK\_SIZE) = \lfloor \frac{OUT\_impl\_depth}{OUT\_depth(BLK\_SIZE)} \rfloor
 | dout | input | [DW-1:0] | Dữ liệu pull từ FIFO |
 | rd_en | output | | Pull dữ liệu từ FIFO |
 | data_count | input | [AW-1:0] | Optional. Số lượng phần tử dữ liệu hiện có trong FIFO |
+
 
 **NOTE**: WR và RD ports hoạt động đồng bộ. FIFO mặc định được triển khai với cài đặt First Word Fall Throught và Read Before Write.
