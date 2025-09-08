@@ -2,7 +2,7 @@
 
 # Cấu trúc phân cấp module top
 
-- [TurboEncode (Top)]()
+<!-- - [TurboEncode (Top)](#entity-duobinarycrscencode) -->
   - [DuobinaryCRSCEncode](#entity-duobinarycrscencode)
     - [INP](#entity-inp)
     - [PRE](#entity-pre)

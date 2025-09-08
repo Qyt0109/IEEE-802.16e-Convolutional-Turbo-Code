@@ -3,12 +3,12 @@
 # Cấu trúc phân cấp module top
 
 - [TurboDecode (Top)](#entity-turbodecode)
-    - [TurboDecCtrl]()
-        - [SISO]()
-            - [alpha]()
-            - [beta]()
-            - [gamma]()
-            - [ext]()
+    - [TurboDecCtrl](#entity-turbodecode)
+        - [SISO](#entity-siso)
+            - [SISO_Alpha](#entity-siso_alpha)
+            - [SISO_Beta](#entity-siso_beta)
+            - [SISO_Gamma](#entity-siso_gamma)
+            - [SISO_Ext](#entity-siso_ext)
             - [DualReadPortRAM]() x2 cho RAM_beta, RAM_gamma
         - [Interleaver_Extra]()
         - [Interleaver]()
