@@ -1,0 +1,6 @@
+{
+    reg: [
+      {bits: 10, type:3, name: 'blk_size'},
+      {bits: 22, type:1, name: 'reserved'}
+    ]
+}

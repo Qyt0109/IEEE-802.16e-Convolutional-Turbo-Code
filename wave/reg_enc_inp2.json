@@ -1,0 +1,15 @@
+{
+    reg: [
+        {bits: 16, type:1, name:'reserved'},
+        {bits: 2 , type:4, name:'AB', attr: '[23]'},
+        {bits: 2 , type:3, name:'AB', attr: '[22]'},
+        {bits: 2,  type:4, name:'AB', attr: '[21]'},
+        {bits: 2,  type:3, name:'AB', attr: '[20]'},
+        {bits: 2 , type:4, name:'AB', attr: '[19]'},
+        {bits: 2 , type:3, name:'AB', attr: '[18]'},
+        {bits: 2 , type:4, name:'AB', attr: '[17]'},
+        {bits: 1 , type:3, name:'B' , attr: '[16]'},
+        {bits: 1 , type:3, name:'A' , attr: '[16]'},
+
+    ]
+}
