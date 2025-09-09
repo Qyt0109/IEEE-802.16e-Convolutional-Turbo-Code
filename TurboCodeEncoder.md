@@ -24,7 +24,7 @@
 | N         | = `Block size` * 8| _Number of bits_. Số bit dữ liệu trong 1 khung truyền|
 | Nc        | = `N` / 2 = `Block size` * 4| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền|
 
-
+<!--
 # Kết quả tổng hợp
 
 ||quyetdv WiMAX Turbo Encoder|Xilinx 802.16e CTC Encoder v3.0|Description|
@@ -38,7 +38,7 @@
 ![](img/imp.png)
 
 ![](img/imp-pc.png)
-
+-->
 
 # Entity: DuobinaryCRSCEncode 
 - **File**: DuobinaryCRSCEncode.sv
