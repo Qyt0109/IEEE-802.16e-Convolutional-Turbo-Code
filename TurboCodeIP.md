@@ -93,9 +93,11 @@ __B2: Gửi inp__
 Gửi 48 bit của chuỗi dữ liệu cần encode sử dụng 2 AXI4 transfer 32 bit. Các cặp dữ liệu đầu vào `AB` (2 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 32 bit transfer.
 
 _Transfer #1_:
+
 ![](./wave/reg_enc_inp.png)
 
 _Transfer #2_:
+
 ![](./wave/reg_enc_inp2.png)
 
 __B3: Nhận out__
@@ -365,5 +367,6 @@ k(BLK_SIZE) = floor(
 | dout | input | [DW-1:0] | Dữ liệu pull từ FIFO |
 | rd_en | output | | Pull dữ liệu từ FIFO |
 | data_count | input | [AW-1:0] | Optional. Số lượng phần tử dữ liệu hiện có trong FIFO |
+
 
 **NOTE**: WR và RD ports hoạt động đồng bộ. FIFO mặc định được triển khai với cài đặt First Word Fall Throught và Read Before Write.
