@@ -14,7 +14,7 @@
       - [CRSC](#entity-crsc) x2
     - [TripleBankMem](#entity-triplebankmem)
       - [DualReadPortRAM](#entity-dualreadportram) x3
-    - [my_fifo]() x2
+    - [fifo]() x2
 
 # Các tham số chung
 

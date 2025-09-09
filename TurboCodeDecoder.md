@@ -3,20 +3,19 @@
 # Cấu trúc phân cấp module top
 
 - [TurboDecode (Top)](#entity-turbodecode)
-    - [TurboDecCtrl](#entity-turbodecode)
-        - [SISO](#entity-siso)
-            - [SISO_Alpha](#entity-siso_alpha)
-            - [SISO_Beta](#entity-siso_beta)
-            - [SISO_Gamma](#entity-siso_gamma)
-            - [SISO_Ext](#entity-siso_ext)
-            - [DualReadPortRAM]() x2 cho RAM_beta, RAM_gamma
-        - [Interleaver_Extra]()
-        - [Interleaver]()
-        - [INP]()
-    - [LLR_RAM]()
-        - [DualReadPortRAM]() x3 cho AB, Y1W1, Y2W2
-    - [LLR_RAM_EXT]()
-        - [DualReadPortRAM]() cho EXT
+    - [TurboDecCtrl](#entity-turbodecode): ctrl
+        - [SISO](#entity-siso): siso
+            - [SISO_Alpha](#entity-siso_alpha): alpha
+            - [SISO_Beta](#entity-siso_beta): beta
+            - [SISO_Gamma](#entity-siso_gamma): gamma
+            - [SISO_Ext](#entity-siso_ext): ext
+            - [DualReadPortRAM]() x2: RAM_beta, RAM_gamma
+        - [Interleaver_Extra](): intl
+        - [Interleaver](): intl_out
+        - [INP](): inp
+    - [MultipleBankDualReadPortRAM](): LLR_RAM
+        - [DualReadPortRAM]() x3
+    - [DualReadPortRAM]() LLR_RAM_EXT
 
 # Các tham số chung
 
