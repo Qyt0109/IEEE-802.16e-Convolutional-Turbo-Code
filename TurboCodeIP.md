@@ -8,9 +8,9 @@ Tài liệu này tập trung mô tả kiến trúc tổng quát, chức năng, c
 
 ## Cấu trúc phân cấp
 
-- [axi_ip_turbo_enc_wrapper (TOP)]()
-    - [axi_ip_turbo_enc](): axi_ip_turbo_enc_inst
-        - [TurboEncode](): TurboEncode_inst
+- [axi_ip_turbo_enc_wrapper (TOP)](#axi_ip_turbo_enc_wrapper)
+    - [axi_ip_turbo_enc](#axi_ip_turbo_enc_wrapper): axi_ip_turbo_enc_inst
+        - [TurboEncode](./TurboCodeEncoder.md): TurboEncode_inst
         - [axi_to_fifo]() x2: axi_to_fifo_cfig, axi_to_fifo_inp
         - [fifo_to_axi](): fifo_to_axi_out
     - [fifo]() x3: fifo_cfig, fifo_inp, fifo_out
@@ -186,9 +186,9 @@ k(BLK_SIZE) = floor(
 
 ## Cấu trúc phân cấp
 
-- [axi_ip_turbo_dec_wrapper (TOP)]()
-    - [axi_ip_turbo_dec](): axi_ip_turbo_dec_inst
-        - [TurboDecode](): TurboDecode_inst
+- [axi_ip_turbo_dec_wrapper (TOP)](#axi_ip_turbo_dec_wrapper)
+    - [axi_ip_turbo_dec](#axi_ip_turbo_dec_wrapper): axi_ip_turbo_dec_inst
+        - [TurboDecode](./TurboCodeDecoder.md): TurboDecode_inst
         - [axi_to_fifo]() x2: axi_to_fifo_cfig, axi_to_fifo_inp
         - [fifo_to_axi](): fifo_to_axi_out
     - [fifo]() x3: fifo_cfig, fifo_inp, fifo_out
@@ -203,6 +203,11 @@ Turbo Decoder IP bao gồm 3 lớp bọc lên module TurboDecode theo thứ tự
 ![](./img/top_axi_ip_turbo_dec-internal_fifo.png)
 
 ![](./img/top_axi_ip_turbo_dec-external_fifo.png)
+
+# axi_ip_turbo_dec_wrapper
+
+- **File**: axi_ip_turbo_dec_wrapper.sv
+- **File**: axi_ip_turbo_dec.sv
 
 ## Generics
 
