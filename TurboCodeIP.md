@@ -261,7 +261,7 @@ __Kênh OUT__: Khi IP pack chuỗi dữ liệu đầu ra sau decode, sẽ pack c
 - CFIG và INP là các __Write-only__ AXI4 Slave, nếu cố tình đọc sẽ trả về phản hồi với mã lỗi `rresp = SLVERR`. 
 - OUT là __Read-only__ AXI4 Slave, nếu cố tình ghi sẽ trả về phản hồi với mã lỗi `bresp = SLVERR`.
 
-### Ví dụ: AXI bus width = 64, block size = 6 
+### Ví dụ: AXI bus width = 64, block size = 24
 
 __Cần thực hiện:__
 
