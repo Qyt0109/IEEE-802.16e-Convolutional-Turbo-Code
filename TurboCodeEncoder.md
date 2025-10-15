@@ -3,26 +3,26 @@
 # Cấu trúc phân cấp module top
 
 <!-- - [TurboEncode (Top)](#entity-duobinarycrscencode) -->
-  - [DuobinaryCRSCEncode](#entity-duobinarycrscencode)
+  - [TurboEncode](#entity-turboencode)
     - [INP](#entity-inp)
     - [PRE](#entity-pre)
       - [Interleaver](#entity-interleaver)
       - [CRSC](#entity-crsc) x2
       - [CircStateLUT](#entity-circstatelut) x2
-    - [ENC]()
+    - [ENC](#entity-enc)
       - [Interleaver](#entity-interleaver)
       - [CRSC](#entity-crsc) x2
-    - [TripleBankMem](#entity-triplebankmem)
-      - [DualReadPortRAM](#entity-dualreadportram) x3
-    - [fifo]() x2
+    - [multiple_bank_ram_2r1w_sync](common.md)
+      - [ram_2r1w_sync](common.md) x3
+    - [fifo](common.md) x2
 
 # Các tham số chung
 
 | Tham số    | Giá trị                                                           | Giải thích |
 | ---------- | ----------------------------------------------------------------- |------------|
-| Block size | 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600 | Số byte dữ liệu trong một khung truyền|
-| N         | = `Block size` * 8| _Number of bits_. Số bit dữ liệu trong 1 khung truyền|
-| Nc        | = `N` / 2 = `Block size` * 4| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền|
+| `BLK_SIZE` | 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600 | _Block size_. Số byte dữ liệu trong một khung truyền|
+| `N`         | `= BLK_SIZE * 8`| _Number of bits_. Số bit dữ liệu trong 1 khung truyền|
+| `Nc`        | `= N / 2 = Block size * 4`| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền|
 
 <!--
 # Kết quả tổng hợp
@@ -40,8 +40,39 @@
 ![](img/imp-pc.png)
 -->
 
-# Entity: DuobinaryCRSCEncode 
-- **File**: DuobinaryCRSCEncode.sv
+# Entity: TurboEncode 
+- **File**: TurboEncode.sv
+
+## Diagram
+
+![Diagram](img/top_TurboEncode.png "Diagram")
+
+## Ports
+
+| Port name    | Direction | Type  | Description
+| ------------ | --------- | ----- | --------------------------------------------------------------------------------------
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk
+| rst          | input     |       | Reset đồng bộ khi `rst = 1`.
+| i_BLK_SIZE   | input     | [9:0] | Block size cho lần Turbo Encode tiếp theo.
+| i_FD_IN      | input     |       | _First Data IN_. Báo hiệu bắt đầu một lần Turbo Encode.
+| o_RFFD       | output    |       | Ready For First Data. Sẵn sàng cho lần Turbo Encode tiếp theo.
+| i_DATA_IN_AB | input     | [1:0] | Dữ liệu đầu vào `AB`.
+| i_DATA_VALID | input     |       | Dữ liệu đầu vào `AB` hợp lệ.
+| o_DATA_READY | input     |       | Sẵn sàng nhận dữ liệu đầu vào `AB`.
+| o_DATA_LAST  | output    |       | Báo hiệu `AB` tiếp theo là mẫu cuối cùng, kết thúc chuỗi đầu vào của một block
+| o_BLK_START  | output    |       | _Block start_. Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ
+| o_BLK_END    | output    |       | _Block end_. Báo hiệu phần tử cuối cùng của chuỗi đầu ra hợp lệ
+| o_SYST_A     | output    |       | Systematic bit `A` channel từ CRSC encoder tự nhiên
+| o_SYST_B     | output    |       | Systematic bit `B` channel từ CRSC encoder tự nhiên
+| o_PAR_Y1     | output    |       | Parity bit `Y` từ CRSC encoder tự nhiên
+| o_PAR_W1     | output    |       | Parity bit `W` từ CRSC encoder tự nhiên
+| o_PAR_Y2     | output    |       | Parity bit `Y` từ CRSC encoder đan xen
+| o_PAR_W2     | output    |       | Parity bit `W` từ CRSC encoder đan xen
+| o_RDY        | output    |       | Đầu ra hợp lệ
+
+|<a id="TurboEncode-Dependencies"></a> ___TurboEncode Dependencies___|
+|:-:|
+|![](./img/TurboEncode_Dependencies.png)|
 
 ## Functional description
 
@@ -77,34 +108,6 @@ __Lưu ý__: memory chỉ được lưu chuỗi _AB_ cho một block dữ liệu
 
 Để tăng hiệu suất quá trình encode, thiết kế sử dụng 3 khối memory xoay vòng để lần lượt thực hiện __INP__, __PRE__, __ENC__ liên tục. Minh họa việc luân phiên sử dụng 3 khối memory xoay vòng có thể được tham khảo tại [Wave](#wave).
 
-## Diagram
-<!-- ![Diagram](rtl/DuobinaryCRSCEncode.svg "Diagram") -->
-### Top interface
-![Diagram](img/top_DuobinaryCRSCEncode.png "Diagram")
-### Submodules
-![Diagram](img/top_DuobinaryCRSCEncode_submodules.png "Diagram")
-## Ports
-
-| Port name    | Direction | Type  | Description                                                                             |
-| ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
-| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
-| rst          | input     |       | Reset đồng bộ khi `rst` = 1.                                                            |
-| i_BLK_SIZE   | input     | [9:0] | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.  |
-| i_DATA_IN_AB | input     | [1:0] | Dữ liệu đầu vào từ kênh A, B                                                            |
-| i_DARA_VALID | input     |       | Dữ liệu đầu vào từ kênh A, B hợp lệ                                                     |
-| i_FD_IN      | input     |       | First Data IN. Báo hiệu bắt đầu một chuỗi dữ liệu đầu vào mới                           |
-| o_INP_LAST   | output    |       | Báo hiệu dữ liệu hợp lệ tiếp theo là mẫu cuối cùng, kết thúc chuỗi đầu vào của một block|
-| o_BLK_START  | output    |       | Block start. Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ                          |
-| o_BLK_END    | output    |       | Block end. Báo hiệu phần tử cuối cùng của chuỗi đầu ra hợp lệ                           |
-| o_SYST_A     | output    |       | Systematic bit A channel từ CRSC encoder tự nhiên                                       |
-| o_SYST_B     | output    |       | Systematic bit B channel từ CRSC encoder tự nhiên                                       |
-| o_PAR_Y1     | output    |       | Parity bit Y từ CRSC encoder tự nhiên                                                   |
-| o_PAR_W1     | output    |       | Parity bit W từ CRSC encoder tự nhiên                                                   |
-| o_PAR_Y2     | output    |       | Parity bit Y từ CRSC encoder đan xen                                                    |
-| o_PAR_W2     | output    |       | Parity bit W từ CRSC encoder đan xen                                                    |
-| o_RDY        | output    |       | Đầu ra hợp lệ                                                                           |
-| o_RFFD       | output    |       | Ready For First Data. Sẵn sàng cho một block dữ liệu đầu vào kế tiếp
-
 ## Wave
 
 Không thay đổi Block size
@@ -129,8 +132,6 @@ Thay đổi Block size
 
 - **File**: Interleaver.sv
 
-Thực hiện tạo natural order indexing _o_idx_, interleaved order indexing _o_idx_intl_ tương ứng với việc không xáo trộn, xáo trộn cặp _AB_ khi sử dụng chỉ số trên để đọc từ memory.
-
 ## Diagram
 
 ![Diagram](rtl/Interleaver.svg "Diagram")
@@ -140,53 +141,37 @@ Thực hiện tạo natural order indexing _o_idx_, interleaved order indexing _
 | Port name  | Direction | Type   | Description                                                                                                                                                                                                                                                       |
 | ---------- | --------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | clk        | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                                                                                                                                                                                                       |
-| rst        | input     |        | Reset đồng bộ khi `rst` = 1.                                                                                                                                                                                                                                      |
-| i_BLK_SIZE | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.                                                                                                                                                                            |
-| i_start    | input     |        | Khi `o_ready` = 1 và `i_start` = 1, module được kích hoạt, tạo ra chỉ số tự nhiên/gốc (natural) `o_idx` và chỉ số đan xen (interleave) `o_idx_intl` tại mỗi chu kỳ đồng hồ `clk` (bao gồm cả chu kỳ kích hoạt) cho tới khi tạo đủ số mẫu `n` = `block_size` \* 4. |
-| o_BLK_SIZE | output    | [9:0]  | Mẫu Block size tại lần cuối lấy mẫu. `o_BLK_SIZE` = `block_size`.                                                                                                                                                                                                 |
+| rst        | input     |        | Reset đồng bộ khi `rst = 1`.                                                                                                                                                                                                                                      |
+| i_BLK_SIZE | input     | [9:0]  | Số byte của Block size.                                                                                |
+| i_start    | input     |        | Kích hoạt module. |
+| o_ready    | output    |        | Module sẵn sàng kích hoạt.                                                                                                                                                                                                                     |
+| o_BLK_SIZE | output    | [9:0]  | Mẫu Block size tại lần cuối lấy mẫu.                                                                                                                                                                                            |
 | o_idx      | output    | [11:0] | Chỉ số gốc/tự nhiên (natural).                                                                                                                                                                                                                                    |
-| o_idx_intl | output    | [11:0] | Chỉ số đan xen (interleave) tương ứng với chỉ số gốc.                                                                                                                                                                                                             |
-| o_valid    | output    |        | Đầu ra hợp lệ                                                                                                                                                                                                                                                     |
-| o_last     | output    |        | Đầu ra cuối cùng trong `n` = `block_size` \* 4 mẫu.                                                                                                                                                                                                               |
-| o_ready    | output    |        | Module sẵn sàng được kích hoạt bởi `i_start`.                                                                                                                                                                                                                     |
-
-## Wave
-
-![](./wave/Interleaver.svg)
-
-## Latency
-
-Độ trễ = 0. Module có thể ngay lập tức tạo chuỗi đầu ra trong chính chu kỳ kích hoạt.
-
-Độ trễ của module được tính từ lúc bắt đầu kích hoạt (`o_ready` = 1 và `i_start` = 1) cho tới khi đầu ra hợp lệ đầu tiên được output.
+| o_idx_intl | output    | [11:0] | Chỉ số đan xen (interleave).                                                                                                                                                                                                             |
+| o_valid    | output    |        | Chỉ số hợp lệ.                                                                                                                                                                                                                                                     |
+| o_last     | output    |        |  Chỉ số cuối cùng.                                                                                                                                                                                                               |
 
 ## Functional description
 
-#### Dựa trên tài liệu IEEE Std 802.16-2009 mục 8.4.9.2.3.2 CTC interleaver
+Khi `o_ready && i_start`, module được kích hoạt, tạo ra chỉ số tự nhiên/gốc (natural) `o_idx` và chỉ số đan xen (interleave) `o_idx_intl` tại mỗi chu kỳ `clk` (bao gồm cả chu kỳ kích hoạt) cho tới khi tạo đủ `Nc` mẫu. Sử dụng chỉ số trên để đọc từ memory sẽ tương ứng với việc không xáo trộn, xáo trộn chuỗi `AB`.
+
+### Dựa trên tài liệu IEEE Std 802.16-2009 mục 8.4.9.2.3.2 CTC interleaver
 
 Quá trình đan xen (Interleave) phụ thuộc vào các tham số Nc, P0, P1, P2, P3 tương ứng với Block size. Các tham số này được cho trong bảng sau:
 
 <p id="interleave-table">Interleave table:</p>
 
-| Block size |  Nc  | P0  | P1  | P2  | P3  |
-| :--------: | :--: | :-: | :-: | :-: | :-: |
-|     6      |  24  |  5  |  0  |  0  |  0  |
-|     9      |  36  | 11  | 18  |  0  | 18  |
-|     12     |  48  | 13  | 24  |  0  | 24  |
-|     18     |  72  | 11  |  6  |  0  |  6  |
-|     24     |  96  |  7  | 48  | 24  | 72  |
-|     27     | 108  | 11  | 54  | 56  |  2  |
-|     30     | 120  | 13  | 60  |  0  | 60  |
-|     36     | 144  | 17  | 74  | 72  |  2  |
-|     45     | 180  | 11  | 90  |  0  | 90  |
-|     48     | 192  | 11  | 96  | 48  | 144 |
-|     54     | 216  | 13  | 108 | 0   | 108 |
-|     60     | 240  | 13  | 120 | 60  | 180 |
-|    120     | 480  | 53  | 62  | 12  |  2  |
-|    240     | 960  | 43  | 64  | 300 | 824 |
-|    360     | 1440 | 43  | 720 | 360 | 540 |
-|    480     | 1920 | 31  |  8  | 24  | 16  |
-|    600     | 2400 | 53  | 66  | 24  |  2  |
+| Block size |  Nc  | P0  | P1  | P2  | P3  || Block size |  Nc  | P0  | P1  | P2  | P3  |
+| :--------: | :--: | :-: | :-: | :-: | :-: |-| :--------: | :--: | :-: | :-: | :-: | :-: |
+|     6      |  24  |  5  |  0  |  0  |  0  ||     48     | 192  | 11  | 96  | 48  | 144 |
+|     9      |  36  | 11  | 18  |  0  | 18  ||     54     | 216  | 13  | 108 | 0   | 108 |
+|     12     |  48  | 13  | 24  |  0  | 24  ||     60     | 240  | 13  | 120 | 60  | 180 |
+|     18     |  72  | 11  |  6  |  0  |  6  ||    120     | 480  | 53  | 62  | 12  |  2  |
+|     24     |  96  |  7  | 48  | 24  | 72  ||    240     | 960  | 43  | 64  | 300 | 824 |
+|     27     | 108  | 11  | 54  | 56  |  2  ||    360     | 1440 | 43  | 720 | 360 | 540 |
+|     30     | 120  | 13  | 60  |  0  | 60  ||    480     | 1920 | 31  |  8  | 24  | 16  |
+|     36     | 144  | 17  | 74  | 72  |  2  ||    600     | 2400 | 53  | 66  | 24  |  2  |
+|     45     | 180  | 11  | 90  |  0  | 90  ||
 
 Quá trình đan xen diễn ra như sau:
 
@@ -220,11 +205,11 @@ Bước 2: Ánh xạ chuỗi các cặp giá trị
 ```
 ### Thiết kế phù hợp phần cứng
 
-Module `Interleaver` hoạt động tương tự như mô tả trên. Nhưng bỏ qua các bước tạo chuỗi `u1`, `u2` mà chỉ quan tâm tới việc tạo ra giá trị địa chỉ (chỉ số) đan xen `P(j)`, hay `o_idx_intl` tương ứng với giá trị địa chỉ (chỉ số) gốc `j`, hay `o_idx`.
+Module _Interleaver_ hoạt động tương tự như mô tả trên. Nhưng bỏ qua các bước tạo chuỗi `u1`, `u2` mà chỉ quan tâm tới việc tạo ra giá trị địa chỉ (chỉ số) đan xen `P(j)`, hay `o_idx_intl` tương ứng với giá trị địa chỉ (chỉ số) gốc `j`, hay `o_idx`.
 
-Vòng for ở Bước 2 thể hiện việc chỉ số gốc `j` tăng tuyến tính, điều này gợi ý rằng phép nhân `P0 * j` tại từng vòng lặp là không cần thiết. Với mỗi vòng lặp ta chỉ cần tăng `j` lên 1 và tính `P0_mul_idx = P0_mul_idx + P0`. `P0_mul_idx` sau đó được cộng thêm với giá trị tạm gọi là `K`. `K` lần lượt = `1`, `1 + P1 + Nc/2`, `1 + P2`, `1 + P3 + Nc/2` tương ứng với các `case` (j % 4) = 0, 1, 2, 3 của `switch`.
+Vòng for ở Bước 2 thể hiện việc chỉ số gốc `j` tăng tuyến tính, điều này gợi ý rằng phép nhân `P0 * j` tại từng vòng lặp là không cần thiết. Với mỗi vòng lặp ta chỉ cần tăng `j` lên 1 và tính `P0_mul_idx = P0_mul_idx + P0`. `P0_mul_idx` sau đó được cộng thêm với giá trị tạm gọi là `K`. `K` lần lượt = `1`, `1 + P1 + Nc/2`, `1 + P2`, `1 + P3 + Nc/2` tương ứng với các case `idx_mod_4 = (j % 4) = 0, 1, 2, 3`.
 
-Về giá trị `K`, giá trị này là hằng số phụ thuộc vào các tham số `P1, P2, P3, Nc/2` và tất cả chúng đều chỉ phụ thuộc vào `Block size`. Vậy thay vì cần lưu bảng tra P1, P2, P3, tính Nc/2,... thì chỉ cần 1 bảng tra duy nhất với đầu vào là `idx_mod_4` = {0, 1, 2, 3} và `blk_sz`.
+Về giá trị `K`, giá trị này là hằng số phụ thuộc vào các tham số `P1, P2, P3, Nc/2` và tất cả chúng đều chỉ phụ thuộc vào `Block size`. Vậy chỉ cần 1 bảng tra duy nhất với đầu vào là `idx_mod_4 = {0, 1, 2, 3}` và `blk_sz`.
 
 ```verilog
 case (idx_mod_4)
@@ -247,134 +232,37 @@ Một phân tích về giá trị `P(j)` tại chỉ số `j` dựa vào điều
 
 ```
 switch (j % 4)
-  0: P(j) = (P0*j + 1 ) % Nc
+  0: P(j) = (P0*j + 1            ) % Nc
   1: P(j) = (P0*j + 1 + P1 + Nc⁄2) % Nc
-  2: P(j) = (P0*j + 1 + P2) % Nc
+  2: P(j) = (P0*j + 1 + P2       ) % Nc
   3: P(j) = (P0*j + 1 + P3 + Nc/2) % Nc
 ```
 
-Theo [Interleave table](#interleave-table) thì các giá trị P0 là số lẻ, P1, P2, P3, Nc/2 là số chẵn. Từ đó ta có:
+Theo [Interleave table](#interleave-table) thì các giá trị `P0` là số lẻ (O - odd), `P1`, `P2`, `P3`, `Nc/2` là số chẵn (E - even). Từ đó ta có:
 
 ```
 switch (j % 4)
-  0: P(j) = (E*j + E ) % O = E
-  1: P(j) = (E*j + E + O + O) % O = O
-  2: P(j) = (E*j + E + O) % O = E
-  3: P(j) = (E*j + E + O + O) % O = O
-
-<=>
-if (i % 2 == 0)
-  P(j) = E
-else            
-  P(j) = O
+  0: P(j) = (O*E + O        ) % E = O
+  1: P(j) = (O*O + O + E + E) % E = E
+  2: P(j) = (O*E + O + E    ) % E = O
+  3: P(j) = (O*O + O + E + E) % E = E
 ```
+Hay
 
-O là số chẵn và E là số lẻ. Có thể thấy chuỗi chỉ số Interleave P(j) bắt đầu với một giá trị lẻ, sau đó là chẵn, và cứ như vậy chuyển đổi giữa chỉ số chẵn và lẻ.
+```
+P(j) = (j % 2) ? E : O
+```
+Khi cần tạo chuỗi đan xen `u2`, đọc từ các địa chỉ tương ứng với chuỗi `P(j)`, tráo đổi cặp giá trị tại các vị trí `P(j)` lẻ (tương ứng với `j` chẵn).
 
-Chúng ta bỏ qua việc tráo đổi cặp giá trị AB tại các vị trí lẻ như mô tả trong quá trình tạo chuỗi `u1` trong [Interleave process](#interleave-process), lưu trực tiếp từng cặp AB vào trong Memory. Khi cần tạo chuỗi giá trị đan xen `u2` chỉ cần tạo đọc từ các địa chỉ tương ứng với chuỗi `P(j)` nhưng giá trị đầu tiên đọc được (chỉ số gốc `j` là lẻ) sẽ cần tráo đổi cặp giá trị, giá trị tiếp theo thì không cần, cứ như vậy cho tới khi đọc được hết các cặp giá trị từ trong Memory.
+## Wave
 
-# Entity: DualReadPortRAM
-
-Dual Read Port Random Access Memory
-
-- **File**: DualReadPortRAM.sv
-
-## Diagram
-
-![Diagram](rtl/DualReadPortRAM.svg "Diagram")
-
-## Generics
-
-| Generic name | Type | Value | Description   |
-| ------------ | ---- | ----- | ------------- |
-| DW           |      | 2     | Data Width    |
-| AW           |      | 12    | Address Width |
-
-## Ports
-
-| Port name | Direction | Type     | Description                                                 |
-| --------- | --------- | -------- | ----------------------------------------------------------- |
-| clk       | input     |          | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`. |
-| rst       | input     |          | Reset đồng bộ khi `rst` = 1.                                |
-| i_wen     | input     |          | Write Enable                                                |
-| i_waddr   | input     | [AW-1:0] | Write Address                                               |
-| i_wdata   | input     | [DW-1:0] | Write Data                                                  |
-| i_raddr_A | input     | [AW-1:0] | Read Address from port A                                    |
-| i_raddr_B | input     | [AW-1:0] | Read Address from port B                                    |
-| o_rdata_A | output    | [DW-1:0] | Read Data from port A                                       |
-| o_rdata_B | output    | [DW-1:0] | Read Data from port B                                       |
+![](./wave/Interleaver.svg)
 
 ## Latency
 
-Độ trễ Write = 1. Độ trễ Read = 1.
+Độ trễ = 0. Module có thể ngay lập tức tạo chuỗi đầu ra trong chính chu kỳ kích hoạt (`o_ready && i_start`).
 
-Độ trễ Write của module được tính từ lúc `i_wen` được kích hoạt tới lúc `i_wdata` được ghi vào địa chỉ `i_waddr`.
-
-Độ trễ Read của module được tính từ lúc giá trị địa chỉ `i_raddr` hoặc dữ liệu tại `i_raddr` thay đổi tới lúc `o_rdata` được đọc từ địa chỉ `i_raddr`.
-
-## Functional description
-
-Khi `i_wen` = 1, dữ liệu `i_wdata` được ghi vào địa chỉ `i_waddr` tại chu kỳ `clk` kế tiếp. Khi `i_raddr` thay đổi hoặc dữ liệu tại `i_raddr` thay đổi, giá trị `o_rdata` đọc được từ `i_raddr` được cập nhật tại chu kỳ `clk` kế tiếp. Có 1 port để ghi dữ liệu, 2 port để đọc dữ liệu, các port có thể hoạt động độc lập và không ảnh hưởng tới nhau, ưu tiên dữ liệu tại các port là ghi trước, đọc sau.
-
-# Entity: TripleBankMem
-
-Triple Bank Memory
-
-- **File**: TripleBankMem.sv
-
-## Diagram
-
-![Diagram](rtl/TripleBankMem.svg "Diagram")
-
-## Generics
-
-| Generic name | Type | Value | Description     |
-| ------------ | ---- | ----- | --------------- |
-| DW           |      | 2     | Data Width      |
-| AW           |      | 12    | Address Width   |
-| NB           |      | 3     | Number of Banks |
-
-## Ports
-
-| Port name | Direction | Type        | Description                                                        |
-| --------- | --------- | ----------- | ------------------------------------------------------------------ |
-| clk       | input     |             | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.        |
-| rst       | input     |             | Reset đồng bộ khi `rst` = 1.                                       |
-| i_wen     | input     | [NB-1:0]    | Write Enable. MSB = write to bank NB-1, ..., LSB = wtite to bank 0 |
-| i_waddr   | input     | [AW-1:0]    | Write Address                                                      |
-| i_wdata   | input     | [DW-1:0]    | Write Data                                                         |
-| i_raddr_A | input     | [AW*NB-1:0] | Read Address from port A of all Banks                              |
-| i_raddr_B | input     | [AW*NB-1:0] | Read Address from port B of all Banks                              |
-| o_rdata_A | output    | [DW*NB-1:0] | Read Data from port A of all Banks                                 |
-| o_rdata_B | output    | [DW*NB-1:0] | Read Data from port B of all Banks                                 |
-
-## Constants
-
-| Name | Type | Value | Description     |
-| ---- | ---- | ----- | --------------- |
-| NB   |      | 3     | Number of Banks |
-
-## Instantiations
-
-- NB x DualReadPortRAM_inst: DualReadPortRAM
-
-## Latency
-
-Độ trễ Write = 1. Độ trễ Read = 1.
-
-Độ trễ của module phụ thuộc vào module con [DualReadPortRAM](#entity-dualreadportram)
-
-Độ trễ Write của module được tính từ lúc `i_wen` tại bank `b` được kích hoạt tới lúc `i_wdata` được ghi vào địa chỉ `i_waddr` của bank `b`.
-
-Độ trễ Read của module được tính từ lúc giá trị địa chỉ `i_raddr` hoặc dữ liệu tại `i_raddr` tại bank `b` bất kỳ thay đổi tới lúc `o_rdata` được đọc từ địa chỉ `i_raddr` tại bank `b`.
-
-## Functional description
-
-Module [TripleBankMem](#entity-triplebankmem) là ghép của `NB = 3` module con [DualReadPortRAM](#entity-dualreadportram), gọi là các bank.
-
-Khi `i_wen` tại bank `b` = 1, dữ liệu `i_wdata` được ghi vào địa chỉ `i_waddr` trên bank `b` tại chu kỳ `clk` kế tiếp. Có thể ghi đồng thời vào nhiều bank khác nhau với cùng một dữ liệu và trên cùng một địa chỉ.
-
-Xét tại bank `b`, khi `i_raddr` thay đổi hoặc dữ liệu tại `i_raddr` thay đổi, giá trị `o_rdata` đọc được từ `i_raddr` được cập nhật tại chu kỳ `clk` kế tiếp. Có thể đọc đồng thời từ nhiều bank khác nhau một cách độc lập.
+Độ trễ của module được tính từ lúc bắt đầu kích hoạt cho tới khi đầu ra hợp lệ đầu tiên được output.
 
 # Entity: CRSC
 
@@ -384,9 +272,8 @@ Circular Recursive Systematic Convolutional
 
 ## Diagram
 
-![Diagram](rtl/CRSC.svg "Diagram")
+![](./img/top_CRSC.png)
 
-<!-- ![](img/CRSC-diagram.png) -->
 <div style="text-align:center;">
   <img src="img/CRSC-diagram.png" width="80%">
 </div>
@@ -395,15 +282,26 @@ Circular Recursive Systematic Convolutional
 
 | Port name     | Direction | Type  | Description                                                |
 | ------------- | --------- | ----- | ---------------------------------------------------------- |
-| clk           | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk` |
-| i_state       | input     | [2:0] | Trạng thái cần thiết lập                                   |
-| i_state_valid | input     |       | Thiết lập trạng thái                                       |
-| i_AB          | input     | [1:0] | Dữ liệu đầu vào từ kênh A, B                               |
-| i_valid       | input     |       | Đầu vào hợp lệ                                             |
+| clk           | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`. |
+| rst           | input     |       | Reset đồng bộ tích cực cao. |
+| i_state       | input     | [2:0] | Trạng thái cần thiết lập.                                   |
+| i_state_valid | input     |       | Thiết lập trạng thái.                                       |
+| i_AB          | input     | [1:0] | Dữ liệu đầu vào từ kênh A, B.                               |
+| i_valid       | input     |       | Đầu vào hợp lệ.                                             |
+| i_start       | input     |       | Mẫu đầu vào đầu tiên.                                             |
+| i_last        | input     |       | Mẫu đầu vào cuối cùng.
 | o_state       | output    | [2:0] | Trạng thái hiện tại {S1, S2, S3}                           |
-| o_Y           | output    |       | Bit parity Y. `Y(D) = 1 + D2 + D3`                         |
-| o_W           | output    |       | Bit parity W. `W(D) = 1 + D3`                              |
+| o_AB          | output    | [2:0] | Systematic A, B.
+| o_Y           | output    |       | Parity Y.                         |
+| o_W           | output    |       | Parity W.                        |
 | o_valid       | output    |       | Đầu ra hợp lệ                                              |
+| o_start       | output    |       | Mẫu đầu ra đầu tiên.                                           |
+| o_last        | output    |       | Mẫu đầu ra cuối cùng.                                          |
+| o_next_state | output | [2:0] | Trạng thái tiếp theo (combinatorial).
+| o_next_valid       | output    |       | Đầu ra combinatorial hợp lệ                                              |
+| o_next_start       | output    |       | Mẫu đầu ra combinatorial đầu tiên.                                           |
+| o_next_last        | output    |       | Mẫu đầu ra combinatorial cuối cùng.                                          |
+
 
 ## Wave
 
@@ -453,44 +351,55 @@ Nếu `i_state_valid` và `i_valid` đồng thời = 1, `state` sẽ được c�
 <!-- ![Diagram](rtl/INP.svg "Diagram") -->
 ![Diagram](img/top_INP.png "Diagram")
 
+## Generics
+
+| Generic name | Type | Value | Description     |
+| ------------ | ---- | ----- | --------------- |
+| DW           |      | 2     | Data Width      |
+| AW           |      | 12    | Address Width   |
+
 ## Ports
 
 | Port name    | Direction | Type   | Description                                                                            |
 | ------------ | --------- | ------ | -------------------------------------------------------------------------------------- |
 | clk          | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                            |
 | rst          | input     |        | Reset đồng bộ khi `rst` = 1.                                                           |
-| i_FD_IN      | input     |        | First Data IN. Báo hiệu bắt đầu một chuỗi dữ liệu đầu vào mới                          |
-| i_DATA_IN_AB | input     | [1:0]  | Dữ liệu đầu vào từ kênh A, B                                                           |
-| i_BLK_SIZE   | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt. |
-| o_wen        | output    |        | Write Enable                                                                           |
-| o_AB         | output    |        | Write Data                                                                             |
-| o_waddr      | output    | [11:0] | Write Address                                                                          |
-| o_LAST       | output    |        | Báo hiệu kết thúc của chuỗi đầu vào.                                                   |
-| o_RFFD       | output    |        | Ready For First Data. module sẵn sàng cho chuỗi dữ liệu đầu vào mới                    |
-| o_BLK_SIZE   | output    | [9:0]  | Block size từ lần lấy mẫu cuối cùng.                                                   |
+| i_BLK_SIZE   | input     | [9:0] | Block size.
+| i_FD_IN      | input     |       | _First Data IN_. Báo hiệu bắt đầu một lần đẩy chuỗi đầu vào.
+| o_RFFD       | output    |       | Ready For First Data. Sẵn sàng cho lần nhận chuỗi đầu vào tiếp theo.
+|i_DATA|input|[DW-1:0]| Mẫu dữ liệu trong chuỗi đầu vào.
+|i_VALID|input||Mẫu đầu vào hợp lệ.
+|o_READY|output||Sẵn sàng nhận mẫu đầu vào.
+|o_LAST|output||Báo hiệu mẫu cuối trong chuỗi `Nc` mẫu.
+|o_waddr|output||Địa chỉ ghi vào RAM tương ứng với chỉ số của mẫu.
+|o_DATA|output||Dữ liệu ghi vào RAM tương ứng với mẫu dữ liệu đầu vào.
+|o_we|output||Ghi dữ liệu vào RAM.
+
+|<a id="TurboEncode-Dependencies"></a> ___INP Dependencies___|
+|:-:|
+|![](./img/TurboEncode_Dependencies.png)|
+
+## Functional description
+
+Module `INP` kiểm soát việc ghi vào Memory một Block dữ liệu đầu vào (`Nc` mẫu) một cách tuần tự, cung cấp một số tín hiệu điều khiển quan trọng như `o_LAST`, `o_RFFD` cho luồng xử lý của module cao hơn (Top module).
+
+Khi bắt đầu một chuỗi đầu vào mới (`o_RFFD && i_FD_IN`), lần lượt các `i_DATA_IN_AB` (bao gồm cả trong chu kỳ kích hoạt) sẽ được gửi lệnh ghi vào `o_waddr` = 0, 1, ..., `Nc`-1.
+`o_RFFD = 1` báo hiệu sẵn sàng nhận chuỗi dữ liệu đầu vào mới. Khi `o_RFFD` = 1 và `i_FD_IN` = 1 thì tại chu kỳ kế tiếp `o_RFFD` = 0 cho tới khi `Nc` cặp đầu vào `AB` được gửi lệnh ghi tới Memory.
+
+`o_LAST = 1` báo hiệu phần tử cuối cùng của chuỗi đầu vào, đồng nghĩa với việc hoàn tất việc chuyển tiếp một Block dữ liệu để ghi vào Memory.
 
 ## Wave
 
 <!-- ![](wave/INP.svg) -->
-![](img/top_INP_wave.png)
+![](wave/INP.png)
 
 ## Latency
 
 Độ trễ khởi đầu = 0. Độ trễ chuyển giao = 0.
 
-Độ trễ khởi đầu được tính từ lúc module được kích hoạt (`o_RFFD` = 1 báo hiệu sẵn sàng cho một chuỗi dữ liệu mới, và đồng thời `i_FD_IN` = 1 báo hiệu bắt đầu một chuỗi dữ liệu mới) cho tới khi dữ liệu `o_AB` đầu tiên được gửi tới Memory bus, ra lệnh ghi vào địa chỉ `o_waddr` tương ứng.
+Độ trễ khởi đầu được tính từ lúc module được kích hoạt (`o_RFFD = 1` báo hiệu sẵn sàng cho một chuỗi dữ liệu mới, và đồng thời `i_FD_IN = 1` báo hiệu bắt đầu một chuỗi dữ liệu mới) cho tới khi dữ liệu `o_AB` đầu tiên được gửi tới Memory bus, ra lệnh ghi vào địa chỉ `o_waddr` tương ứng.
 
 Độ trễ chuyển giao là số chu kỳ đồng hồ `clk` cần thiết để module "nghỉ" giữa 2 chuỗi dữ liệu kế tiếp nhau. Module này có thể hoạt động thông suốt mà không yêu cầu khoảng nghỉ.
-
-## Functional description
-
-Module `INP` kiểm soát việc ghi vào Memory một Block dữ liệu đầu vào một cách tuần tự, cung cấp một số tín hiệu điều khiển quan trọng như `o_LAST`, `o_RFFD` cho luồng xử lý của module cao hơn (Top module).
-
-Khi bắt đầu một chuỗi đầu vào mới `o_RFFD` = 1 và `i_FD_IN` = 1, lần lượt các `i_DATA_IN_AB` (bao gồm cả trong chu kỳ kích hoạt) sẽ được gửi lệnh ghi vào `o_waddr` = 0, 1, ..., Nc-1 (Với số lượng cặp đầu vào AB `Nc = BLK_SIZE \* 4`).
-
-`o_RFFD` = 1 báo hiệu sẵn sàng nhận chuỗi dữ liệu đầu vào mới. Khi `o_RFFD` = 1 và `i_FD_IN` = 1 thì tại chu kỳ kế tiếp `o_RFFD` = 0 cho tới khi Nc cặp đầu vào AB được gửi lệnh ghi tới Memory.
-
-`o_LAST` = 1 báo hiệu phần tử cuối cùng của chuỗi đầu vào, đồng nghĩa với việc hoàn tất việc chuyển tiếp một Block dữ liệu để ghi vào Memory.
 
 # Entity: PRE
 
@@ -498,68 +407,60 @@ Khi bắt đầu một chuỗi đầu vào mới `o_RFFD` = 1 và `i_FD_IN` = 1,
 
 ## Diagram
 
-![Diagram](rtl/PRE.svg "Diagram")
-
-Cấu trúc bên trong:
-
-![](img/PRE-diagram.png)
+![](./img/top_PRE.png)
 
 ## Ports
 
 | Port name             | Direction | Type   | Description                                                                                                                                                                                                     |
 | --------------------- | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | clk                   | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                                                                                                                                                     |
-| rst                   | input     |        | Reset đồng bộ khi `rst` = 1.                                                                                                                                                                                    |
+| rst                   | input     |        | Reset đồng bộ khi `rst = 1`.                                                                                                                                                                                    |
+| i_BLK_SIZE            | input     | [9:0]  | Block size.                                                                                                                          |
 | i_start               | input     |        | Báo hiệu bắt đầu Precode một chuỗi dữ liệu mới                                                                                                                                                   |
-| i_BLK_SIZE            | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.                                                                                                                          |
-| o_ren                 | output    |        | Read Enable                                                                                                                                                                                                     |
+| o_ready               | output    |        | Ready For First Data. Module sẵn sàng nhận chuỗi dữ liệu mới cho việc Precode.                                                                                                                                  |
 | o_raddr_A             | output    | [11:0] | Read Address - port A. Địa chỉ đọc cặp dữ liệu AB từ port A của Memory. Địa chỉ đọc từ port A là tuần tự 0, 1, ..., Nc-1 và tương ứng với chỉ số tự nhiên (natural/non-interleave index).                       |
 | o_raddr_B             | output    | [11:0] | Read Address - port B. Địa chỉ đọc cặp dữ liệu AB từ port A của Memory. Địa chỉ đọc từ port B tương ứng với chỉ số đan xen (interleave index). Được giải thích trong module [Interleaver](#entity-interleaver). |
 | i_rdata_A             | output    | [ 1:0] | Read Data - port A. Cặp dữ liệu AB đọc được từ port A của Memory                                                                                                                                                |
 | i_rdata_B             | output    | [ 1:0] | Read Data - port B. Cặp dữ liệu AB đọc được từ port B của Memory                                                                                                                                                |
-| o_enc_start           | output    |        | Hoàn thành Precoding, bắt đầu Encoding                                                                                                                                                                          |
-| o_enc_init_state      | output    | [2:0]  | Trạng thái khởi đầu cho CRSC tự nhiên (natural) của quá trình Encode.                                                                                                                                           |
-| o_enc_intl_init_state | output    | [2:0]  | Trạng thái khởi đầu cho CRSC đan xen (interleave) của quá trình Encode.                                                                                                                                         |
-| o_last                | output    |        | Báo hiệu kết thúc của chuỗi dữ liệu đầu vào.                                                                                                                                                                    |
-| o_ready               | output    |        | Ready For First Data. Module sẵn sàng nhận chuỗi dữ liệu mới cho việc Precode.                                                                                                                                  |
-| o_BLK_SIZE            | output    | [9:0]  | Block size từ lần lấy mẫu cuối cùng.                                                                                                                                                                            |
-
-## Wave
-
-## Latency
+| o_enc_start           | output    |        | Hoàn thành Precoding, kích hoạt Encoding                                                                                                                                                                          |
+| o_enc_init_state      | output    | [2:0]  | Trạng thái khởi đầu cho _CRSC_ tự nhiên (natural) của quá trình Encode.                                                                                                                                           |
+| o_enc_intl_init_state | output    | [2:0]  | Trạng thái khởi đầu cho _CRSC_ đan xen (interleave) của quá trình Encode.                                                                                                                                         |
+| o_BLK_SIZE            | output    | [9:0]  | Block size từ lần lấy mẫu cuối cùng.                                                                                                                                                                           
 
 ## Functional description
 
-Khối PRE yêu cầu khối Interleaver tạo cặp địa chỉ tuần tự và địa chỉ đan xen, lần lượt đọc các cặp dữ liệu AB từ Memory với địa chỉ tương ứng. Lưu ý rằng tại kênh đan xen, cặp AB đầu tiên đọc được sẽ cần tráo đổi vị trí, cặp tiếp theo thì không cần, cứ như vậy đọc từ Memory (như được mô tả trong [Interleaver](#entity-interleaver)).
+Khối PRE yêu cầu khối _Interleaver_ tạo cặp địa chỉ tuần tự và địa chỉ đan xen, lần lượt đọc các cặp dữ liệu AB từ Memory với địa chỉ tương ứng. Lưu ý rằng tại kênh đan xen, cặp AB cần được tráo đổi như được mô tả trong [Interleaver](#entity-interleaver)).
 
-Chuỗi các cặp AB đọc được từ địa chỉ tuần tự và đan xen sẽ được đưa vào khối CRSC encoder tương ứng để thực hiện quá trình Precoding. Trạng thái cuối cùng sau quá trình trên sẽ được chuyển đổi thành trạng thái bắt đầu của quá trình Encode thông qua việc tra [CircStateLUT](#entity-circstatelut).
+Chuỗi các cặp AB đọc được từ địa chỉ tuần tự và đan xen sẽ được đưa vào khối _CRSC_ encoder tương ứng để thực hiện quá trình Precoding. Trạng thái cuối cùng sau quá trình trên sẽ được chuyển đổi thành trạng thái bắt đầu của quá trình Encode thông qua việc tra [_CircStateLUT_](#entity-circstatelut).
 
-Việc tra CircStateLUT yêu cầu tính Nc mod 7 tuy nhiên phép tính mod trực tiếp là không cần thiết và tiêu tốn nhiều tài nguyên phần cứng. Thay vào đó, sử dụng một thanh ghi tích lũy mod 7 để mỗi khi CRSC Encoder tạo ra một đầu ra hợp lệ (tương ứng với xử lý xong 1 cặp AB) sẽ làm tăng thanh ghi lên 1 đơn vị. Sau khi xử lý xong Nc cặp AB thì giá trị trong thanh ghi nói trên chính là kết quả của Nc mod 7.
+Việc tra _CircStateLUT_ yêu cầu tính `Nc mod 7` tuy nhiên phép tính mod trực tiếp là không cần thiết và tiêu tốn nhiều tài nguyên phần cứng. Thay vào đó, sử dụng một thanh ghi tích lũy mod 7 để mỗi khi CRSC Encoder tạo ra một đầu ra hợp lệ (tương ứng với xử lý xong 1 cặp AB) sẽ làm tăng thanh ghi lên 1 đơn vị. Sau khi xử lý xong Nc cặp AB thì giá trị trong thanh ghi nói trên chính là kết quả của Nc mod 7.
 
+## Waves
+
+![](./wave/PRE.png)
 
 # Entity: ENC 
 - **File**: ENC.sv
 
 ## Diagram
-![Diagram](rtl/ENC.svg "Diagram")
+
+![](./img/top_ENC.png)
+
 ## Ports
 
 | Port name             | Direction | Type   | Description                                                                                                                                                                                  |
 | --------------------- | --------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | clk                   | input     |        | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                                                                                                                                  |
 | rst                   | input     |        | Reset đồng bộ khi `rst` = 1.                                                                                                                                                                 |
-| i_start               | input     |        | Báo hiệu bắt đầu Encode một chuỗi dữ liệu mới                                                                                                                                 |
 | i_BLK_SIZE            | input     | [9:0]  | Số byte của Block size. Được lấy mẫu `block_size` = `i_BLK_SIZE` sau chu kỳ kích hoạt.                                                                                                       |
 | i_enc_init_state      | input     | [2:0]  | Trạng thái khởi tạo CRSC encoder tự nhiên                                                                                                                                                    |
 | i_enc_intl_init_state | input     | [2:0]  | Trạng thái khởi tạo CRSC encoder đan xen                                                                                                                                                     |
-| o_ren                 | output    |        | Read Enable                                                                                                                                                                                  |
+| o_ready               | output    |        | Ready For First Data. Module sẵn sàng nhận chuỗi dữ liệu mới cho việc Encode.                                                                                                                |
+| i_start               | input     |        | Báo hiệu bắt đầu Encode một chuỗi dữ liệu mới                                                                                                                                 |
 | o_raddr_A             | output    | [11:0] | Read Address - port A. Địa chỉ đọc cặp dữ liệu AB từ port A của Memory. Địa chỉ đọc từ port A là tuần tự 0, 1, ..., Nc-1 và tương ứng với chỉ số tự nhiên (natural/non-interleave index).    |
 | o_raddr_B             | output    | [11:0] | Read Address - port B. Địa chỉ đọc cặp dữ liệu AB từ port A của Memory. Địa chỉ đọc từ port B tương ứng với chỉ số đan xen (interleave index). Được giải thích trong module [Interleaver](). |
 | i_rdata_A             | output    | [ 1:0] | Read Data - port A. Cặp dữ liệu AB đọc được từ port A của Memory                                                                                                                             |
 | i_rdata_B             | output    | [ 1:0] | Read Data - port B. Cặp dữ liệu AB đọc được từ port B của Memory                                                                                                                             |
-| o_IDX                 | output    | [11:0] | Chỉ số phần tử của chuỗi đầu ra hợp lệ                                                                                                                                                       |
-| o_BLK_START           | output    |        | Block start. Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ                                                                                                                               |
-| o_BLK_END             | output    |        | Block end. Báo hiệu phần tử cuối cùng của chuỗi đầu ra hợp lệ                                                                                                                                |
 | o_SYST_A              | output    |        | Systematic bit A channel từ CRSC encoder tự nhiên                                                                                                                                            |
 | o_SYST_B              | output    |        | Systematic bit B channel từ CRSC encoder tự nhiên                                                                                                                                            |
 | o_PAR_Y1              | output    |        | Parity bit Y từ CRSC encoder tự nhiên                                                                                                                                                        |
@@ -567,17 +468,20 @@ Việc tra CircStateLUT yêu cầu tính Nc mod 7 tuy nhiên phép tính mod tr�
 | o_PAR_Y2              | output    |        | Parity bit Y từ CRSC encoder đan xen                                                                                                                                                         |
 | o_PAR_W2              | output    |        | Parity bit W từ CRSC encoder đan xen                                                                                                                                                         |
 | o_RDY                 | output    |        | Đầu ra hợp lệ                                                                                                                                                                                |
-| o_last                | output    |        | Báo hiệu kết thúc của chuỗi dữ liệu đầu vào.                                                                                                                                                 |
-| o_ready               | output    |        | Ready For First Data. Module sẵn sàng nhận chuỗi dữ liệu mới cho việc Encode.                                                                                                                |
-| o_BLK_SIZE            | output    | [9:0]  | Block size từ lần lấy mẫu cuối cùng.                                                                                                                                                         |
+| o_BLK_START           | output    |        | Block start. Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ                                                                                                                               |
+| o_BLK_END             | output    |        | Block end. Báo hiệu phần tử cuối cùng của chuỗi đầu ra hợp lệ                                                                                                                                |
 
 ## Functional description
 
 Module bao gồm 2 khối [CRSC](#entity-crsc), lần lượt encode cho chuỗi đầu vào và chuỗi đầu vào xáo trộn. Việc xáo trộn được điều khiển thông qua khối [Interleaver](#entity-interleaver). 
 
-Khi `i_start` = 1, module này nhận Block Size (`i_BLK_SIZE`) và khởi tạo trạng thái cho 2 khối CRSC (thông qua trạng thái khởi tạo `i_enc_init_state`, `i_enc_intl_init_state`) từ module [PRE](#entity-pre). Đồng thời, khối Interleaver bắt đầu việc tạo ra các chỉ số tương ứng với địa chỉ để đọc chuỗi đầu vào từ Memory, đưa vào CRSC để encode.
+Khi `i_start && o_ready`, module này nhận Block Size (`i_BLK_SIZE`) và khởi tạo trạng thái cho 2 khối CRSC (trạng thái khởi tạo `i_enc_init_state`, `i_enc_intl_init_state`) từ module [PRE](#entity-pre)). Đồng thời, khối Interleaver bắt đầu việc tạo ra các chỉ số tương ứng với địa chỉ để đọc chuỗi đầu vào từ Memory đưa vào CRSC.
 
-Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1, bắt đầu chuỗi và kết thúc chuỗi được đánh dấu bằng `o_BLK_START` và `o_BLK_END`.
+Chuỗi đầu ra `ABY1W1Y2W2` hợp lệ được báo hiệu bằng `o_RDY`, bắt đầu chuỗi và kết thúc chuỗi được đánh dấu bằng `o_BLK_START` và `o_BLK_END`.
+
+## Waves
+
+![](./wave/ENC.png)
 
 # Entity: CircStateLUT 
 - **File**: CircStateLUT.sv
@@ -588,7 +492,7 @@ Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1,
 
 | Port name     | Direction | Type  | Description                       |
 | ------------- | --------- | ----- | --------------------------------- |
-| i_Ncoup_mod_7 | input     | [2:0] | Number of couples mod by 7        |
+| i_Ncoup_mod_7 | input     | [2:0] | `Nc` mod 7        |
 | i_state       | input     | [2:0] | Final state of precoding process  |
 | o_state       | output    | [2:0] | Staring state of encoding process |
 
@@ -605,7 +509,9 @@ Chuỗi đầu ra ABY1W1Y2W2 hợp lệ được báo hiệu bằng `o_RDY` = 1,
 |5|0|2|5|7|1|3|4|6|
 |6|0|7|6|1|3|4|5|2|
 
-<!-- # ~~Entity: BlkIntl~~ (UNUSED) 
+<!--
+
+# ~~Entity: BlkIntl~~ (UNUSED) 
 - **File**: BlkIntl.sv
 
 ## Diagram
@@ -729,4 +635,6 @@ Với $get\_ Tk(k, m, J) = 2^m(k \mod J) + BRO_m(\lfloor k / J \rfloor)$. Trong 
 |12|4|3||45|6|3||360|9|3|
 |18|5|3||48|6|3||480|10|2|
 |24|5|3||54|6|4||600|10|3|
-|27|5|4||60|7|2||...|x|x| -->
+|27|5|4||60|7|2||...|x|x|
+
+-->
