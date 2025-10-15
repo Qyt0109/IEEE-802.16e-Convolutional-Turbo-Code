@@ -1,0 +1,31 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+        // {name: 'clk', 				wave: 'P.....|.....'},
+      	
+      		{node: ' a    b    c   d'},
+          [
+          	'TurboEncode',
+            {name: '[5:0] o_ABY1Y2W1W2',	wave: 'x333|3444|45555x...', data: ['100100', '110110', '...', '111011', '100001', '110010', '...', '111010', '111110', '010001', '001101', '000110'] },
+            {name: 'o_BLK_RDY',				wave: '01..|....|.....0...'},
+            {name: 'o_BLK_START',			wave: '010.|....|.........'},
+            {name: 'o_BLK_LAST',			wave: '0...|....|....10...'}
+          ],
+          	{name: 'cstate', 				wave: '2.2.|....|.....2...', data:['IDLE', 'PULL', 'IDLE', 'PULL', 'IDLE', 'PULL', 'IDLE']},
+      	[
+          	'FIFO',
+          	{name: '[63:0] fifo_out_din',	wave: 'x...|.3..|.4...5...', data: ['100100_110110..._111011_0010', '100001_110010..._111010_0000', '111110_010001_001101_000110..._0001']},
+          	{name: 'fifo_out_wr_en',		wave: '0...|.10.|.10..10..'},
+        ],
+        ],
+    edge: [
+        	'a<->b NPACK samples',
+          	'b<->c NPACK samples',
+          	'c<->d NLAST samples'
+    ],
+    head: {
+        text: 'OUT FSM wave example. (DATA_WIDTH = 64, BLK_SIZE = 6)',
+        // tick: 0,
+        // every: 1
+    }
+}

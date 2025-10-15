@@ -1,0 +1,27 @@
+{
+ 	config: {hscale: 1},
+    signal: [
+        {name: 'clk', 					wave: 'P...|...'},
+        [
+          'Start control',
+          {name: 'o_RFFD',			wave: '1.0.|..10'}, 
+          {name: 'i_FD_IN',			wave: '01x.|..1x'},
+          {name: 'i_BLK_SIZE' , 	wave: 'x3x.|..44', data: ['blk0', 'blk1']},
+        ],
+        [
+          'Data control',
+          {name: 'i_DATA_IN_AB', 	wave: 'x333|3344', data: ['0', '1', '...', 'Nc-2', 'Nc-1', '0', '1']},
+          {name: 'i_DATA_VALID', 	wave: '01..|....'},
+          {name: 'i_DATA_READY', 	wave: '01..|....'},
+          {name: 'o_INP_LAST', 		wave: '0...|.10.'},
+        ],
+    ],
+    edge: [
+    	'a~>x', 'a~>y'
+    ],
+    head: {
+        text: 'Turbo Encode - input wave example',
+        tick: 0,
+        every: 1
+    }
+}

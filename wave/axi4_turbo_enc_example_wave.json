@@ -1,0 +1,27 @@
+{
+ 	config: {hscale: 1},
+    signal: [
+        // {name: 'clk', 				wave: 'P.....|.....'},
+      	[
+          	'AXI BUS',
+        	{name: 'AW',	    wave: 'x3.x....5.x........|..............', data: ['CFG', 'INP']},
+            {name: 'W',	        wave: 'x...3.x.....5...x..|..............', data: ['CFG (1)', 'INP (2)']},
+        	{name: 'B', 		wave: 'x.....3x.........5x|..............', data: ['CFG', 'INP']},
+            {name: 'AR', 		wave: 'x..................|7.x...........', data: ['OUT']},
+            {name: 'R', 		wave: 'x..................|...7.........x', data: ['OUT (5)']},
+        ],
+          {node:' a     bc         d e            f'},
+        ],
+    edge: [
+    	'a<->b write CFG',
+        'c<->d write INP (2 transfers)',
+        'e<->f read OUT (5 transfers)',
+          
+          'g<->h waiting for both CFG and INP data available in FIFO'
+    ],
+    head: {
+        text: 'axi4_turbo_enc example wave',
+        // tick: 0,
+        // every: 1
+    }
+}

@@ -1,0 +1,35 @@
+{
+ 	config: {hscale: 1},
+    signal: [
+        // {name: 'clk', 				wave: 'P.....|.....'},
+      	[
+          	'AXI',
+          	{name: 'ARADDR',			      wave: 'x2x.........', data: ['0x08']},
+          	{name: 'ARVALID',			      wave: '010.........', data: ['0x04']},
+          	{name: 'ARREADY',			      wave: '1.0.........', data: ['0x04']},
+        	{name: 'RDATA = rdata',	    	  wave: 'x...3.x456.x', data: ['A', 'B', 'C', 'D', '4', '5']},
+          	{name: 'RRESP', 			      wave: 'x.9...7.77.x', data: ['SLVERR', 'OK', 'OK', 'OK']},
+            {name: 'RVALID = rvalid',   	  wave: '0...1.01...0', data: ['CFG (1)', 'INP (2)']},
+            {name: 'RREADY', 				  wave: '0....1...01.', data: ['OUT']},
+          	{name: 'RLAST', 			      wave: '0........1.0', data: ['CFG', 'INP']},
+        ],
+          [
+          	'CUSTOM',
+            {name: 'raddr', 			      wave: 'x.2...2.22.x', data: ['1', '2', '3', '4', '5'] },
+            {name: 'raddrerr', 			   	  wave: '0.....1.0...', data: ['0', '1', '2', '3', '4']},
+            {name: 'rdata', 	          	  wave: 'x...3.x456.x', data: ['A', 'B', 'C', 'D', '4', '5']},
+            {name: 'rvalid', 	          	  wave: '0...1.01...0', data: ['CFG (1)', 'INP (2)']},
+            {name: 'rready = RREADY',   	  wave: '0....1...01.', data: ['OUT']},
+            {name: 'rack',				      wave: '0....101.010'}
+          ]
+          // {node:' a     bc         d e            f'},
+        ],
+    edge: [
+    	'i~>j'
+    ],
+    head: {
+        text: 's_axi4 example wave',
+        // tick: 0,
+        // every: 1
+    }
+}

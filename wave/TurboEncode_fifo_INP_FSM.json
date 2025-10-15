@@ -1,0 +1,37 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+        // {name: 'clk', 				wave: 'P.....|.....'},
+      	[
+          	'FIFO',
+          	{name: 'fifo_cfg_empty',		wave: '0...|..|.....1|'},
+            {name: '[9:0] fifo_cfg_dout',			wave: '7.8.|..|.....x|', data: ['9', '6']},
+          	{name: 'fifo_cfg_rd_en',		wave: '010.|..|....10|'},
+            {},
+          	{name: 'fifo_inp_empty',		wave: '101.|..|0.....|'},
+            {name: '[63:0] fifo_inp_dout',			wave: 'x3x.|..|45...6|', data: ['1011...01', '00101101...', '11...', '...']},
+          	{name: 'fifo_inp_rd_en',		wave: '010.|..|10..10|'},
+        ],
+          	{name: 'cstate', 				wave: '7.7.|..|....88|', data:['IDLE', 'PUSH', 'IDLE', 'PUSH']},
+          [
+          	'TurboEncode',
+            {name: '[9:0] i_BLK_SIZE',			wave: 'x7x.|..|....8x|', data: ['9', '6'] },
+            {name: 'i_FD_IN',				wave: '010.|..|....10|'},
+            {name: 'o_RFFD',				wave: '1.0.|..|....10|'},
+            {node:' a    b c   d    '},
+            {name: '[1:0] i_DATA_IN_AB',			wave: 'x333|3x|444455|', data: ['10', '11', '...', '01',    '00', '10', '11', '01',     '11', '...', '...', '10']},
+            {name: 'i_DATA_VALID',   	  	wave: '01..|.0|1.....|'},
+            {name: 'o_DATA_READY',			wave: '01..|..|......|'},
+            {name: 'o_DATA_LAST',			wave: '0...|..|...10.|'}
+          ],
+        ],
+    edge: [
+    	'a<->b DATA_WIDTH/2 = 32 unpacked AB samples',
+        'c<->d NLAST unpacked AB samples',
+    ],
+    head: {
+        text: 'INP FSM wave example. (DATA_WIDTH = 64)',
+        // tick: 0,
+        // every: 1
+    }
+}

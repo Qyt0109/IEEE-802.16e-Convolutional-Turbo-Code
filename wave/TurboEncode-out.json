@@ -1,0 +1,18 @@
+{
+ 	config: {hscale: 1},
+    signal: [
+      {name: 'clk', 			wave: 'P...|....'},
+      {name: 'o_BLK_START', 	wave: '010.|..10'},
+      {name: 'o_BLK_END', 		wave: '0...|.10.'},
+      {name: 'o_ABY1Y2W1W2', 	wave: 'x333|3344', data: ['0', '1', '...', 'Nc-2', 'Nc-1', '0', '1']},
+      {name: 'o_RDY', 			wave: '01..|....'},
+    ],
+    edge: [
+    	'a~>x', 'a~>y'
+    ],
+    head: {
+        text: 'Turbo Encode - output wave example',
+        tick: 0,
+        every: 1
+    }
+}

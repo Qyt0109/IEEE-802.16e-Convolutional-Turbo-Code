@@ -2,12 +2,21 @@
     reg: [
         {bits: 2 , type:4, name:'AB', attr: '[15]'},
         {bits: 2 , type:3, name:'AB', attr: '[14]'},
-        {bits: 20, name:'...'},
-        {bits: 2 , type:4, name:'AB', attr: '[3]'},
-        {bits: 2 , type:3, name:'AB', attr: '[2]'},
-        {bits: 2 , type:4, name:'AB', attr: '[1]'},
-        {bits: 1 , type:3, name:'B', attr: '[0]'},
-        {bits: 1 , type:3, name:'A', attr: '[0]'},
+        {bits: 2 , type:4, name:'AB', attr: '[13]'},
+        {bits: 2 , type:3, name:'AB', attr: '[12]'},
+        {bits: 2 , type:4, name:'AB', attr: '[11]'},
+        {bits: 2 , type:3, name:'AB', attr: '[10]'},
+        {bits: 2 , type:4, name:'AB', attr: '[ 9]'},
+        {bits: 2 , type:3, name:'AB', attr: '[ 8]'},
+        {bits: 2 , type:4, name:'AB', attr: '[ 7]'},
+        {bits: 2 , type:3, name:'AB', attr: '[ 6]'},
+        {bits: 2 , type:4, name:'AB', attr: '[ 5]'},
+        {bits: 2 , type:3, name:'AB', attr: '[ 4]'},
+        {bits: 2 , type:4, name:'AB', attr: '[ 3]'},
+        {bits: 2 , type:3, name:'AB', attr: '[ 2]'},
+        {bits: 2 , type:4, name:'AB', attr: '[ 1]'},
+        {bits: 1 , type:3, name:'B' , attr: '[ 0]'},
+        {bits: 1 , type:3, name:'A' , attr: '[ 0]'},
 
     ]
 }
