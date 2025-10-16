@@ -1,0 +1,32 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+      	[
+          	'Producer',
+          {name: 'wdata',				wave: 'x385..x..', data: ['0', '1', '2', '3', '4', '5']},
+          {name: 'wvalid',				wave: '01....0..'},
+          {name: 'wready',				wave: '1..0.1...'},
+        ],
+          {},
+          {name: 'whandshaked',			wave: '01.0.10..'},
+          {name: 'rhandshaked',			wave: '0...1.010'},
+      {name: 'cstate',					wave: '7.49.4..7', data: ['EMPTY', 'BUSY', 'FULL', 'BUSY', 'EMPTY']},
+          {name: 'data_buff',			wave: 'x..8.....', data: ['1', '2', '3', '4', '5']},
+      {},
+        [
+            'Consumer',
+          {name: 'rdata',				wave: 'x.3..85.x', data: ['0', '1', '2', '3', '4', '5']},
+          {name: 'rvalid',				wave: '0.1.....0'},
+          {name: 'rready',  			wave: '0...1.01.'},
+          {name: 'got',					wave: 'x...38x5x', data: ['0', '1', '2', '3', '4', '5']}
+        ],
+    ],
+    edge: [
+    	'a~>b'
+    ],
+    head: {
+        text: 'Valid-Ready pipeline with skid buffer between Producer and Consumer',
+        // tick: 0,
+        // every: 1
+    }
+}

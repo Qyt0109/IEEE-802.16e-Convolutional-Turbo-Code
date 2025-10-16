@@ -1,0 +1,26 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+      	[
+          	'Producer',
+          {name: 'wdata',			wave: 'x2.x222..2x.', data: ['0', '1', '2', '3', '4', '5']},
+          {name: 'wvalid',			wave: '01.01.....0.'},
+          {name: 'wready = rready',	wave: '0.1...0.1.0.'}
+        ],
+          {},
+        [
+            'Consumer',
+          {name: 'rdata = wdata',	wave: 'x2.x222..2x.', data: ['0', '1', '2', '3', '4', '5']},
+          {name: 'rvalid = wvalid',	wave: '01.01.....0.'},
+          {name: 'rready',  		wave: '0.1...0.1.0.'}
+        ],
+    ],
+    edge: [
+    	'a~>b'
+    ],
+    head: {
+        text: 'Valid-Ready pipeline',
+        // tick: 0,
+        // every: 1
+    }
+}

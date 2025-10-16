@@ -1,0 +1,27 @@
+{
+ 	config: {hscale: 2},
+    signal: [
+      	[
+          	'Producer',
+          {name: 'wdata',				wave: 'x.395..x.', data: ['0', '1', '2', '3', '4', '5']},
+          {name: 'wvalid',				wave: '0.1....0.'},
+          {name: 'wready = rready',		wave: '01..0.1.0'}
+        ],
+          {},
+        [
+            'Consumer',
+          {name: 'rdata = d_wdata',		wave: 'x..395..x', data: ['0', '1 (loss)', '2', '3', '4', '5']},
+          {name: 'rvalid = d_wvalid',	wave: '0..1....0'},
+          {name: 'rready',  			wave: '01..0.1.0'},
+          {name: 'got',					wave: 'x..3x.59x', data: ['0', '2', '2 (invalid)', '4', '5']}
+        ],
+    ],
+    edge: [
+    	'a~>b'
+    ],
+    head: {
+        text: 'Valid-Ready pipeline with registed stage at Producer outputs',
+        // tick: 0,
+        // every: 1
+    }
+}

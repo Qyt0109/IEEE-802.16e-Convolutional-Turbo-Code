@@ -1,22 +1,22 @@
 {
  	config: {hscale: 2},
     signal: [
-        {name: 'clk', 				wave: 'P..|...|...'},
+        // {name: 'clk', 				wave: 'P..|...|...'},
       	[
           	'Init',
-        	{name: 'i_logAlpha',	wave: 'x2x|...|...', data: ['ln(1/8)']},
-        	{name: 'i_start', 		wave: '010|...|...', data: ['niter']},
+        	{name: 'i_logAlpha',	wave: 'x2x|....|....', data: ['ln(1/8)']},
+        	{name: 'i_start', 		wave: '010|....|....', data: ['niter']},
         ],
         [
             'Calculate',
-          	{name: 'i_logGamma', 	wave: 'x..|342|5x.', data: ['', '', '...'],
+          	{name: 'i_logGamma', 	wave: 'x..|3472|5x..', data: ['', '', '', '...'],
              node: '.....a'
             },
-            {name: 'i_valid',		wave: '0..|1..|.0.'},
-            {name: 'o_logAlpha',	wave: 'x..|.32|65x', data: ['', '...'],
-             node: '......b'
+            {name: 'i_valid',		wave: '0..|1...|.0..'},
+            {name: 'o_logAlpha',	wave: 'x..|..32|685x', data: ['', '...'],
+             node: '.......b'
             }, 
-            {name: 'o_valid' , 		wave: '0..|.1.|..0'},
+            {name: 'o_valid' , 		wave: '0..|..1.|...0'},
         ],
     ],
     edge: [
@@ -24,7 +24,7 @@
     ],
     head: {
         text: 'SISO_Alpha example wave',
-        tick: 0,
-        every: 1
+        // tick: 0,
+        // every: 1
     }
 }
