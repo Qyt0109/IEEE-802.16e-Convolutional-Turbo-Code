@@ -1,4 +1,12 @@
-# Entity: fifo
+Common module list:
+- [base_fifo_sync](#entity-base_fifo_sync)
+- [skid_buffer](#entity-skid_buffer)
+- [ram_1r1w_sync](#entity-ram_1r1w_sync)
+- [ram_2r1w_sync](#entity-ram_2r1w_sync)
+- [multiple_bank_ram_2r1w_sync](#entity-multiple_bank_ram_2r1w_sync)
+
+
+# Entity: base_fifo_sync
 
 - **File**: base_fifo_sync.v
 
@@ -39,6 +47,58 @@ This component implements a FIFO that:
     - The RAM behavior can be selected.
 
 __NOTE__: No detailed architecture documentation is required for a FIFO. The behavior of the FIFO is sufficiently defined without details about the internals being required.
+
+# Entity: skid_buffer
+
+## Diagram
+
+![](./img/top_skid_buffer.png)
+
+## Generic
+
+| Generic name | Type | Value | Description   |
+| ------------ | ---- | ----- | ------------- |
+| DW           | parameter      | 8     | Data Width    |
+
+## Ports
+
+| Port name | Direction | Type     | Description                                                 |
+| --------- | --------- | -------- | ----------------------------------------------------------- |
+| clk       | input     |          | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`. |
+| rst       | input     |          | Reset đồng bộ khi `rst = 1`.                                |
+| enable    | input     |          | Module chỉ có thể raise `wready` nếu `enable = 1`.
+| wdata     | input| [DW-1:0]| Dữ liệu đầu vào.
+| wvalid|input||Dữ liệu đầu vào hợp lệ.
+|wready|output||Sẵn sàng nhận dữ liệu đầu vào.
+|rdata|output|[DW-1:0]|Dữ liệu đầu ra.
+|rvalid|output||Dữ liệu đầu ra hợp lệ.
+|rready|input||Sẵn sàng lấy dữ liệu đầu ra.
+
+## Functional description
+
+Skid buffer (đôi khi gọi là skid FIFO) là bộ đệm nhỏ, chèn giữa 2 khối giao tiếp bắt tay (`valid` - `ready`), có tác dụng "trượt" dữ liệu khi deassert `ready` mà không làm mất dữ liệu trong thiết kế pipeline, giúp duy trì throughput 1 cycle/transfer.
+
+Ví dụ trong 1 pipeline dữ liệu, để break critical path timing ta chèn vào 1 register stage giữa Producer và Consumer. Lúc này nếu Consumer deassert `ready`, Producer assert `valid` nhưng do register stage mà Producer thấy `ready` được cập nhật chậm hơn 1 clock cycle (tạo bubble), mẫu dữ liệu trước đó sẽ bị mất. Thay vào đó, ta sử dụng _skid buffer_ sẽ tránh được tình trạng trên.
+
+__Ứng dụng__: Valid-ready style pipeline stage insertion, break critical path mà không tạo bubble, giữ thoughput 1 cycle/transfer.
+
+|<p style="text-align:center">FSM</p>|<p style="text-align:center">Description</p>|
+|-|-|
+|![](./img/skid_buffer_FSM.png)|__EMPTY__: Thanh ghi đệm `data_buff` trống, thanh ghi đầu ra `rdata` trống. Raise `wready` báo hiệu sẵn sàng nhận `wdata` mới. Nếu `whandshaked` (`wvalid && wready`), cập nhật `rdata` theo `wdata` đồng thời chuyển trạng thái __BUSY__.<br><br>__BUSY__: Thanh ghi đệm `data_buff` trống, thanh ghi đầu ra `rdata` đầy. Vẫn raise `wready` nhận data mới, đồng thời raise `rvalid` báo hiệu có `rdata`.<br>__- Case #1__: Nếu `whandshaked` và `rhandshaked` (`rvalid && rready`), thanh ghi `rdata` đầu ra được cập nhật theo `wdata` mới.<br>__- Case #2__: Nếu chỉ `rhandshaked`, thanh ghi `rdata` được tiêu thụ và không có `wdata` để cập nhật nên sẽ "trống", chuyển trạng thái __EMPTY__.<br>__- Case #3__: Nếu chỉ `whandshaked`, thanh ghi `rdata` chưa được tiêu thụ nên không thể cập nhật `wdata` mới mà cần sử dụng thanh ghi đệm `data_buff` để tạm giữ lại, đồng thời chuyển trạng thái __FULL__.<br><br>__FULL__: Thanh ghi đệm `data_buff` đầy, thanh ghi đầu ra `rdata` đầy. Raise `rvalid` báo hiệu có `rdata`. Nếu `rhandshaked`, thanh ghi `rdata` được tiêu thụ, đồng thời cập nhật giá trị đệm từ `data_buff` sẵn sàng cho lần `rhandshake` tiếp theo và chuyển trạng thái __BUSY__.
+
+# Wave
+
+|<p style="text-align:center">Data pipeline với Producer và Consumer kết nối trực tiếp</p>
+|-|
+|![](./wave/skid_buffer_pipe_norm.png)|
+
+|<p style="text-align:center">Data pipeline với Producer registed outputs, Consumer thấy data trễ 1 clock cycle</p>
+|-|
+|![](./wave/skid_buffer_pipe_reg.png)|
+
+|<p style="text-align:center">Data pipeline với skid buffer chèn giữa Producer và Consumer</p>
+|-|
+|![](./wave/skid_buffer_pipe_skid.png)|
 
 # Entity: ram_1r1w_sync
 

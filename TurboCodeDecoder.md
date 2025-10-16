@@ -9,24 +9,24 @@
             - [SISO_Beta](#entity-siso_beta): beta
             - [SISO_Gamma](#entity-siso_gamma): gamma
             - [SISO_Ext](#entity-siso_ext): ext
-            - [DualReadPortRAM]() x2: RAM_beta, RAM_gamma
+            - [ram_1r1w_sync](common.md) x2: RAM_beta, RAM_gamma
         - [Interleaver_Extra](): intl
         - [Interleaver](): intl_out
         - [INP](): inp
-    - [MultipleBankDualReadPortRAM](): LLR_RAM
-        - [DualReadPortRAM]() x3
-    - [DualReadPortRAM]() LLR_RAM_EXT
+    - [multiple_bank_ram_1r1w_sync](common.md)
+        - [ram_1r1w_sync](common.md) x3: LLR_RAM_AB, LLR_RAM_Y1W1, LLR_RAM_Y2W2
+    - [ram_1r1w_sync](common.md): LLR_RAM_EXT
 
 # Các tham số chung
 
 | Tham số    | Giá trị                                                           | Giải thích |
 | ---------- | ----------------------------------------------------------------- |------------|
-| Block size | 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600 | Số byte dữ liệu trong một khung truyền|
-| N         | = `Block size` * 8| _Number of bits_. Số bit dữ liệu trong 1 khung truyền|
-| Nc        | = `N` / 2 = `Block size` * 4| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền|
-| NState    | = 8 | Số lượng giá trị trạng thái có thể của thanh ghi trạng thái 3 bit trong CRSC của Turbo Encoder. $S \in \{000, 001,..., 111\}$|
-| NInp      | = 4 | Số lượng giá trị đầu vào có thể của cặp dữ liệu đầu vào AB cho CRSC. $AB \in \{00, 01, 10, 11\}$|
-| NOut      | = 16 | Số lượng giá trị đầu ra có thể của CRSC. $ABYW \in \{0000, 0001,..., 1111\}$ |
+| BLK_SIZE | 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600 | Số byte dữ liệu trong một khung truyền.|
+| N         | `N = BLK_SIZE * 8`| _Number of bits_. Số bit dữ liệu trong 1 khung truyền.|
+| Nc        | `Nc = N / 2 = BLK_SIZE * 4`| _Number of Couples_. Số cặp bit dữ liệu (AB) trong 1 khung truyền.|
+| NState    | 8 | Số lượng giá trị trạng thái có thể của thanh ghi trạng thái 3 bit trong CRSC của Turbo Encoder. $S \in \{000, 001,..., 111\}$.|
+| NInp      | 4 | Số lượng giá trị đầu vào có thể của cặp dữ liệu đầu vào AB cho CRSC. $AB \in \{00, 01, 10, 11\}$.|
+| NOut      | 16 | Số lượng giá trị đầu ra có thể của CRSC. $ABYW \in \{0000, 0001,..., 1111\}$. |
 
 # Yêu cầu chức năng
 
@@ -35,10 +35,10 @@ Khối CTC Encoder như mô tả theo chuẩn WiMAX, IEEE 802.16 tạo ra chuỗ
 Nhiệm vụ của khối Turbo Code Decoder là decode từ soft LLR thành dữ liệu hard bit sử dụng giải thuật Max-Log-Map.
 
 Yêu cầu chức năng:
-- Hỗ trợ các block size: 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600.
-- ~~Hỗ trợ các rate (puncturing pattens).~~ (OPTIONAL)
-- Hỗ trợ thay đổi block size, số vòng lặp, rate mà không làm gián đoạn quá trình decode.
 - Thiết kế đồng bộ, đơn miền tín hiệu đồng hồ.
+- Hỗ trợ các block size: 6, 9, 12, 18, 24, 27, 30, 45, 48, 54, 60, 120, 240, 360, 480, 600.
+- Hỗ trợ thay đổi block size, số vòng lặp, rate mà không làm gián đoạn quá trình decode.
+- ~~Hỗ trợ các rate (puncturing pattens).~~ (OPTIONAL)
 - ~~Song song đa khối giải mã SISO để tăng tốc độ decode cho các block size hỗ trợ điều này.~~ (OPTIONAL)
 
 Yêu cầu kỹ thuật:
@@ -110,13 +110,13 @@ Hình dưới minh họa một khối RAM X chứa 4 phần tử, chuỗi địa
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| nbSymbolsOfTheProlog |      | 24     | Số mẫu cần tính cho quá trình Precode Alpha, Beta    |
-| INP_DW           |      | 8     | Data Width của các LLR đầu vào A, B, Y1, Y2, W1, W2|
-| EXT_DW           |      | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
-| EXT_FW           |      | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
-| EXT_LN_1_8 | | -66 | Giá trị của ln(1/8) biểu diễn dưới dạng sfix{EXT_DW}En{EXT_FW} format.
-| EXT_FeedBackCoeff | | 24 | Hệ số để tính thông tin trao đổi|
-| MEM_AW | | 12 | Address Width cho RAM của các LLR A, B, Y1, W1, Y2, W2, EXT. MEM_AW = 12 hỗ trợ decode cho mọi block size |
+| nbSymbolsOfTheProlog |  parameter    | 24     | Số mẫu cần tính cho quá trình Precode Alpha, Beta    |
+| INP_DW           |  parameter    | 8     | Data Width của các LLR đầu vào A, B, Y1, Y2, W1, W2|
+| EXT_DW           |   parameter   | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
+| EXT_FW           |   parameter   | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
+| EXT_LN_1_8 |parameter | -66 | Giá trị của ln(1/8) biểu diễn dưới dạng sfix{EXT_DW}En{EXT_FW} format.
+| EXT_FeedBackCoeff | parameter| 24 | Hệ số để tính thông tin trao đổi|
+| MEM_AW |parameter | 12 | Address Width cho RAM của các LLR A, B, Y1, W1, Y2, W2, EXT. MEM_AW = 12 hỗ trợ decode cho mọi block size |
 
 ## Ports
 
@@ -136,10 +136,13 @@ Hình dưới minh họa một khối RAM X chứa 4 phần tử, chuỗi địa
 | o_START                          | output    |                | Báo hiệu phần tử đầu tiên của chuỗi đầu ra hợp lệ                          |
 | o_LAST                           | output    |                | Báo hiệu phần tử cuối cùng của chuỗi đầu ra hợp lệ                           |
 
-## FSM
+## Functional Description
+
+Như đã đề cập tại mục [Overview](#overview)
+
 ![](./img/Flow.png)
 
-|FSM States|Description|
+|FSM|Description|
 |:-:|-|
 |![](./img/Flow-FSM.png)|__done_IDLE__: Bắt đầu quá trình decode <br> __done_INIT__: Đã nhận toàn bộ các LLR cần thiết cho quá trình decode <br> __done_SISO__: SISO hoàn tất, kết thúc nửa vòng lặp quá trình decode <br> __done_cnt__: Đếm đủ số lượng vòng lặp cần decode|
 
@@ -157,10 +160,6 @@ Khi `o_RFFD == 1` báo hiệu sẵn sàng cho một lần Turbo Decode mới, t�
 
 Sau khi trải qua đủ số lượng vòng lặp giải mã, tại nửa vòng lặp cuối cùng (tương ứng với trạng thái __DEC__), `Nc` mẫu đầu ra `o_decoded_AB` sẽ được xuất ra ngoài, đây chính là chuỗi dữ liệu kết quả của thuật toán.
 
-## Functional Description
-
-Như đã đề cập tại mục [Overview](#overview)
-
 # Entity: SISO
 - **File**: SISO.sv
 
@@ -168,16 +167,23 @@ Như đã đề cập tại mục [Overview](#overview)
 
 ![](./img/SISO.png)
 
+|Submodule|Latency (clk cycles)|
+|-|:-:|
+SISO_Gamma|2
+SISO_Alpha|2
+SISO_Beta|2
+SISO_Ext|6
+
 ## Generics
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| nbSymbolsOfTheProlog |      | 24     | Số mẫu cần tính cho quá trình Precode Alpha, Beta    |
-| INP_DW           |      | 8     | Data Width của các LLR đầu vào A, B, Y1, Y2, W1, W2|
-| EXT_DW           |      | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
-| EXT_FW           |      | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
-| EXT_LN_1_8 | | -66 | Giá trị của ln(1/8) biểu diễn dưới dạng sfix{EXT_DW}En{EXT_FW} format.
-| EXT_FeedBackCoeff | | 24 | Hệ số để tính thông tin trao đổi|
+| nbSymbolsOfTheProlog |   parameter   | 24     | Số mẫu cần tính cho quá trình Precode Alpha, Beta    |
+| INP_DW           |  parameter    | 8     | Data Width của các LLR đầu vào A, B, Y1, Y2, W1, W2|
+| EXT_DW           |  parameter    | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
+| EXT_FW           |   parameter   | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
+| EXT_LN_1_8 |parameter | -66 | Giá trị của ln(1/8) biểu diễn dưới dạng sfix{EXT_DW}En{EXT_FW} format.
+| EXT_FeedBackCoeff | parameter| 24 | Hệ số để tính thông tin trao đổi|
 
 ## Ports
 
@@ -202,15 +208,15 @@ Như đã đề cập tại mục [Overview](#overview)
 ### Input drive
 ![](./wave/SISO_InputDrive.png)
 
-Sau khi chuẩn bị các LLR RAMs, điều khiển khối SISO khá đơn giản khi chỉ cần kích hoạt `i_start` là quá trình giải mã sẽ được thực thi tự động. Tham số `i_blk_size` sẽ được gán trực tiếp từ module có phân cấp cao hơn (TurboDecCtrl).
+Sau khi chuẩn bị các _LLR RAMs_, điều khiển khối _SISO_ khá đơn giản khi chỉ cần kích hoạt `i_start` là quá trình giải mã sẽ được thực thi tự động. Tham số `i_blk_size` sẽ được gán trực tiếp từ module có phân cấp cao hơn (_TurboDecCtrl_).
 
 ### Read LLR RAMs control
 
-Cấu trúc kết nối giữa SISO và các LLR RAM tham khảo [TurboDecode diagram](#TurboDecode-diagram)
+Cấu trúc kết nối giữa _SISO_ và các _LLR RAM_ tham khảo [TurboDecode diagram](#TurboDecode-diagram)
 
 ![](./wave/SISO_Intl_LLR.png)
 
-Trong quá trình module SISO thực hiện thuật toán SISO decode sẽ cần đọc từ LLR RAMs các tham số A, B, Y, W, EXT với số lượng mẫu `X` (`X = nbSymbolsOfTheProlog` khi cần tính Prelog, nếu không `X = Nc`) và theo trình tự xuôi hoặc ngược Trellis (ngược khi cần tính Beta hoặc Prelog Beta). SISO điều khiển việc này thông qua khối Interleave_Extra, tạo ra chuỗi chỉ số (cả Interleaved và Non-Interleaved).
+Trong quá trình module _SISO_ thực hiện thuật toán SISO decode sẽ cần đọc từ LLR RAMs các tham số `A`, `B`, `Y`, `W`, `EXT` với số lượng mẫu `X` (`X = Nc`, nếu tính Prelog `X = nbSymbolsOfTheProlog`) và theo trình tự xuôi (tính `Alpha` / `Prelog Alpha`) hoặc ngược Trellis (tính `Beta` / `Prelog Beta`). _SISO_ điều khiển việc này thông qua khối _Interleave_Extra_, tạo ra chuỗi chỉ số tương ứng với địa chỉ cần đọc từ _LLR RAM_.
 
 |Process|o_intl_prolog|o_intl_reverse|
 |:-:|:-:|:-:|
@@ -219,7 +225,7 @@ Trong quá trình module SISO thực hiện thuật toán SISO decode sẽ cần
 |Prelog Beta|1|x|
 |~~Prelog Alpha~~ (unused)|-|-|
 
-Tùy theo trạng thái hiện tại của module TurboDecCtrl đang là __DEC__ hay __DEC_INTL__ mà chuỗi chỉ số nào sẽ được sử dụng để đọc từ các LLR RAM tương ứng và truyền vào module SISO.
+Tùy theo trạng thái hiện tại của module _TurboDecCtrl_ đang là __DEC__ hay __DEC_INTL__ mà chuỗi chỉ số nào sẽ được sử dụng để đọc từ các LLR RAM tương ứng và truyền vào module SISO.
 
 |LLRs|DEC|DEC_INTL|
 |:-:|:-:|:-:|
@@ -278,19 +284,19 @@ Triển khai thuật toán của các hàm _SISO_Alpha, SISO_Beta, SISO_Gamma, S
 
 ### Nhận xét
 
-Giả sử có thể truy cập random access vào bất kỳ phần tử tại vị trí $k$ chuỗi LLR của A, B, Y, W, EXT, tham số Gamma tại vị trí đó có thể được tính một cách dễ dàng theo công thức đã trình bày trước đó.
+Giả sử có thể truy cập random access vào bất kỳ phần tử tại vị trí `k` chuỗi LLR của `A`, `B`, `Y`, `W`, `EXT`, tham số `Gamma` tại vị trí đó có thể được tính một cách dễ dàng theo công thức đã trình bày trước đó.
 
-Tham số Alpha yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace xuôi (forward) từ điểm bắt đầu ($k = Nc - nbSymbolsOfTheProlog$ đối với tìm Prelog Alpha và $k = 0$ đối với tìm Alpha) cho tới điểm kết thúc $k = Nc$. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí $k-1$ trước đó khi muốn tính Alpha tại vị trí $k$.
+Tham số `Alpha` yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace xuôi (forward) từ điểm bắt đầu (`k = Nc - nbSymbolsOfTheProlog` đối với tìm `Prelog Alpha` và `k = 0` đối với tìm `Alpha`) cho tới điểm kết thúc `k = Nc`. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí `k-1` trước đó khi muốn tính `Alpha` tại vị trí `k`.
 
-Tham số Beta yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace ngược (backward) từ điểm bắt đầu ($k = 0 + nbSymbolsOfTheProlog$ đối với tìm Prelog Beta và $k = Nc$ đối với tìm Beta) cho tới điểm kết thúc $k = 0$. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí $k+1$ sau đó khi muốn tính Beta tại vị trí $k$.
+Tham số `Beta` yêu cầu tính tổng tích lũy qua Trellis thông qua việc trace ngược (backward) từ điểm bắt đầu (`k = 0 + nbSymbolsOfTheProlog` đối với tìm `Prelog Beta` và `k = Nc` đối với tìm `Beta`) cho tới điểm kết thúc `k = 0`. Điều này dẫn tới sự phụ thuộc vào chuỗi giá trị tại vị trí `k+1` sau đó khi muốn tính Beta tại vị trí `k`.
 
-Tham số EXT (và decoded_AB) yêu cầu Alpha, Beta, Gamma tại vị trí tương ứng.
+Tham số `EXT` (và `decoded_AB`) yêu cầu `Alpha`, `Beta`, `Gamma` tại vị trí tương ứng.
 
 ![](./img/SISO-Explain.png)
 
-Alpha và Beta yêu cầu Gamma để tính, không cần RAM dể lưu Gamma vì có thể đọc trực tiếp từ các LLR RAM tại vị trí tương ứng để tính.
+`Alpha` và `Beta` yêu cầu `Gamma` để tính, không cần RAM dể lưu `Gamma` vì có thể đọc trực tiếp từ các _LLR RAM_ tại vị trí tương ứng để tính.
 
-EXT và decoded_AB yêu cầu Alpha, Beta, Gamma tại vị trí tương ứng, có thể tính đồng thời chuỗi Alpha và Beta rồi lần lượt lưu vào Alpha RAM, Beta RAM tuy nhiên vẫn phải chờ cho tới khi toàn bộ chuỗi đã được ghi vào trong RAM để bắt đầu tính toán. Thay vào đó có thể tính Alpha hoặc Beta trước và lưu vào RAM, sau đó tính tham số còn lại đến đâu sẽ tính được EXT và decoded_AB đến đó nên không yêu cầu RAM để lưu trữ. Việc tính toán Beta trước, Alpha sau sẽ có lợi hơn vì chuỗi EXT và decoded_AB sẽ theo chiều tính Alpha (xuôi theo chiều Trellis).
+`EXT` và `decoded_AB` yêu cầu `Alpha`, `Beta`, `Gamma` tại vị trí tương ứng, có thể tính đồng thời chuỗi `Alpha` và `Beta` rồi lần lượt lưu vào _Alpha RAM_, _Beta RAM_ tuy nhiên vẫn phải chờ cho tới khi toàn bộ chuỗi đã được ghi vào trong RAM để bắt đầu tính toán. Thay vào đó có thể tính `Alpha` hoặc `Beta` trước và lưu vào RAM, sau đó tính tham số còn lại đến đâu sẽ tính được `EXT` và `decoded_AB` đến đó nên không yêu cầu RAM để lưu trữ. Việc tính toán `Beta` trước, `Alpha` sau sẽ có lợi hơn vì chuỗi `EXT` và `decoded_AB` sẽ theo chiều tính `Alpha` (xuôi theo chiều Trellis).
 
 ### FSM
 
@@ -316,7 +322,7 @@ Khối SISO sẽ sử dụng 2 trạng thái, trạng thái chính __cstate__ v�
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| EXT_DW       |      | 16    | Data Width của các tham số tính toán   |
+| EXT_DW       |  parameter    | 16    | Data Width của các tham số tính toán   |
 
 ## Ports
 
@@ -330,10 +336,6 @@ Khối SISO sẽ sử dụng 2 trạng thái, trạng thái chính __cstate__ v�
 | i_valid      | input     |       | Tính toán Alpha tại chỉ số kế tiếp trong chuỗi. Khi kích hoạt, `i_logGamma` và `prev_logAlpha` sẽ được dùng để tính toán và cập nhật giá trị cho `prev_logAlpha`.|
 | o_logAlpha   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Alpha tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logAlpha`.|
 | o_valid      | output    |       | Đầu ra `o_logAlpha` hợp lệ. |
-
-## Wave
-
-![](./wave/SISO_Alpha.png)
 
 ## Functional Descriptions
 
@@ -386,6 +388,10 @@ Module __SISO_Alpha__ thực hiện việc tính toán tham số Alpha xuôi the
 
 Để tính Prelog Alpha, `i_logAlpha` sẽ được khởi tạo bởi một mảng _NState_ phần tử đều mang giá trị __ln(1/8)__.
 
+## Wave
+
+![](./wave/SISO_Alpha.png)
+
 # Entity: SISO_Beta
 - **File**: SISO_Beta.sv
 
@@ -397,7 +403,7 @@ Module __SISO_Alpha__ thực hiện việc tính toán tham số Alpha xuôi the
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| EXT_DW       |      | 16    | Data Width của các tham số tính toán   |
+| EXT_DW       |   parameter   | 16    | Data Width của các tham số tính toán   |
 
 ## Ports
 
@@ -411,10 +417,6 @@ Module __SISO_Alpha__ thực hiện việc tính toán tham số Alpha xuôi the
 | i_valid      | input     |       | Tính toán Beta tại chỉ số kế tiếp trong chuỗi. Khi kích hoạt, `i_logGamma` và `prev_logBeta` sẽ được dùng để tính toán và cập nhật giá trị cho `prev_logBeta`.|
 | o_logBeta   | output    | signed [EXT_DW-1:0][NState] | Giá trị tham số Beta tại chỉ số hiện tại trong chuỗi. Đầu ra này được gán với giá trị của thanh ghi `prev_logBeta`.|
 | o_valid      | output    |       | Đầu ra `o_logBeta` hợp lệ. |
-
-## Wave
-
-![](./wave/SISO_Beta.png)
 
 ## Functional Description
 
@@ -463,12 +465,14 @@ function logBeta = calculLogBeta(logGamma)
 end
 ```
 
+## Wave
+
+![](./wave/SISO_Beta.png)
+
 # Entity: SISO_Gamma
 - **File**: SISO_Gamma.sv
 
 ## Diagram
-
-None
 
 ![](./img/top_SISO_Gamma.png)
 
@@ -476,8 +480,8 @@ None
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| INP_DW       |      | 8     | Data Width của các LLR    |
-| EXT_DW       |      | 16    | Data Width của các tham số tính toán   |
+| INP_DW       |  parameter    | 8     | Data Width của các LLR    |
+| EXT_DW       |  parameter    | 16    | Data Width của các tham số tính toán   |
 
 ## Ports
 
@@ -490,10 +494,6 @@ None
 |o_logGamma| output | [EXT_DW-1:0] [NState][NInp] | Giá trị tham số Gamma cho tính toán Alpha, Beta |
 |o_logGammaForOutputExtrinsic| output | [EXT_DW-1:0] [NState][NInp] | Giá trị tham số Gamma cho tính toán thông tin trao đổi Extrinsic |
 |o_valid|output||Đầu ra hợp lệ|
-
-## Wave
-
-![](./wave/SISO_Gamma.png)
 
 ## Functional Description
 
@@ -530,6 +530,10 @@ function [LLR_SYST, LLR_PAR] = calcul_LLR_SYST_LLR_PAR(
 end
 ```
 
+## Wave
+
+![](./wave/SISO_Gamma.png)
+
 # Entity: SISO_Ext
 
 - **File**: SISO_Ext.sv
@@ -542,21 +546,23 @@ None
 
 | Generic name | Type | Value | Description   |
 | ------------ | ---- | ----- | ------------- |
-| EXT_DW           |      | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT) |
-| EXT_FW           |      | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã |
-| EXT_FeedBackCoeff | | 24 | Hệ số để tính thông tin trao đổi|
+| EXT_DW           |  parameter    | 32    | Data Width của các tham số Alpha, Beta, Gamma, EXT,... trong quá trình giải mã. (Tiền tố EXT_* có thể gây hiểu nhầm rằng đây chỉ là tham số cài đặt cho EXT). |
+| EXT_FW           |      | 5     | Fractional Width của tham số thông tin trao đổi (extrinsic infomation - EXT) trong quá trình giải mã. |
+| EXT_FeedBackCoeff | | 24 | Hệ số để tính thông tin trao đổi.|
 
 ## Ports
 
 | Port name    | Direction | Type  | Description                                                                             |
 | ------------ | --------- | ----- | --------------------------------------------------------------------------------------  |
-| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`                              |
-| i_logGamma<br>i_logGammaForOutputExtrinsic | input | signed [EXT_DW-1:0] [NState][NInp] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu |
-| i_logAlpha<br>i_logBeta | input | signed [EXT_DW] [NState] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu |
-| i_valid | input | | Các tham số đầu vào hợp lệ |
-| o_logExt | output | signed [EXT_DW-1:0] [NInp] | Thông tin trao đổi cho nửa vòng lặp giải mã kế tiếp |
-| o_decoded_AB | output | [1:0] | Đầu ra dữ liệu sau giải mã |
-| o_valid | output | | Đầu ra hợp lệ |
+| clk          | input     |       | Tín hiệu đồng hồ. Module hoạt động theo cạnh lên của `clk`.                              |
+| i_logGamma<br>i_logGammaForOutputExtrinsic | input | signed [EXT_DW-1:0] [NState][NInp] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu. |
+| i_logAlpha<br>i_logBeta | input | signed [EXT_DW] [NState] | Các tham số cần thiết cho quá trình tính toán thông tin trao đổi và giải mã dữ liệu. |
+| i_valid | input | | Các tham số đầu vào hợp lệ. |
+| i_last  | input | | Báo hiệu mẫu đầu vào cuối.
+| o_logExt | output | signed [EXT_DW-1:0] [NInp] | Thông tin trao đổi cho nửa vòng lặp giải mã kế tiếp. |
+| o_decoded_AB | output | [1:0] | Đầu ra dữ liệu sau giải mã. |
+| o_valid | output | | Đầu ra hợp lệ. |
+| o_last | output | | Báo hiệu mẫu đầu ra cuối.
 
 ## Wave
 

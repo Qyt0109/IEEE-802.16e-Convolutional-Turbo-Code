@@ -25,7 +25,7 @@
 | Generic name | Type | Default Value | Description   |
 | ------------ | ---- | ------------- | ------------- |
 | DATA_WIDTH   | parameter | 64            | Độ rộng dữ liệu dùng cho kênh AXI4 xDATA |
-| ADDR_WIDTH   | parameter | 6             | Độ rộng địa chỉ dùng cho kênh AXI4 AxADDR |
+| ADDR_WIDTH   | parameter | 5             | Độ rộng địa chỉ dùng cho kênh AXI4 AxADDR |
 | ID_WIDTH     | parameter | 8             | Độ rộng ID dùng cho kênh AXI4 xID |
 | MAP_ADDR_WIDTH | localparam | 2 | Độ rộng địa chỉ dùng cho Custom bus. |
 | FIFO_CFG_DW  | localparam | 10 | Độ rộng dữ liệu FIFO CFG
@@ -35,7 +35,7 @@
 | FIFO_INP_DD  | localparam | 256        | Số lượng phần tử FIFO INP
 | FIFO_OUT_DD  | localparam | 1024       | Số lượng phần tử FIFO OUT
       
-**NOTE**: Tham số __DATA_WIDTH__ hỗ trợ các giá trị theo chuẩn AXI4: 32, __64__, 128, 256, 512, 1024. Tuy nhiên mới chỉ thiết kế để hỗ trợ `DW = 64`, các cài đặt khác chưa được kiểm chứng.
+**NOTE**: Tham số `DATA_WIDTH` hỗ trợ các giá trị theo chuẩn AXI4: 32, __64__, 128, 256, 512, 1024. Tuy nhiên mới chỉ thiết kế để hỗ trợ `DW = 64`, các cài đặt khác chưa được kiểm chứng.
 
 ## Ports
 
@@ -91,11 +91,11 @@ __axi4_turbo_enc__ được thiết kế với chức năng chính là để cun
 
 ### Cấu trúc khung dữ liệu đọc/ghi
 
-__Kênh CFG__: Khi gửi thiết lập cho lần encode tiếp theo tới IP, 10 LSB bit của wdata sẽ được sử dụng cho tham số `block_size`.
+__Kênh CFG__: Khi gửi thiết lập cho lần encode tiếp theo tới IP, 10 LSB bit của `wdata` sẽ được sử dụng cho tham số `block_size`.
 
-__Kênh INP__: Khi gửi chuỗi dữ liệu đầu vào cần encode tới IP, cần pack cho đủ DATA_WIDTH bit mỗi AXI4 transfer rồi truyền lần lượt `INP_len` transfers. Pack lần lượt các cặp `AB` đầu vào với chỉ số từ `0 đến Nc-1` theo chiều `MSB đến LSB` của AXI wdata, `DATA_WIDTH - (N % DATA_WIDTH)` LSB còn lại của transfer cuối cùng sẽ được bỏ qua bởi IP (phía gửi mặc định padding 0's).
+__Kênh INP__: Khi gửi chuỗi dữ liệu đầu vào cần encode tới IP, cần pack cho đủ `DATA_WIDTH` bit mỗi AXI4 transfer rồi truyền lần lượt `INP_len` transfers. Pack lần lượt các cặp `AB` đầu vào với chỉ số từ `0 đến Nc-1` theo chiều `MSB đến LSB` của AXI `wdata`, `DATA_WIDTH - (N % DATA_WIDTH)` LSB còn lại của transfer cuối cùng sẽ được bỏ qua bởi IP (phía gửi mặc định padding 0's).
 
-__Kênh OUT__: Khi IP pack chuỗi dữ liệu đầu ra sau encode, sẽ pack cho đủ DATA_WIDTH bit mỗi AXI4 transfer rồi truyền lần lượt `OUT_len` transfers. Pack lần lượt tập `ABY1Y2W1W2` đầu ra với chỉ số từ `0 đến Nc-1` theo chiều `MSB đến LSB` của AXI rdata. Lưu ý rằng khi pack, các transfer sẽ luôn dư 2 hoặc 4 LSB (tùy theo giá trị của DATA_WIDTH), 2 bit LSB sẽ được tận dụng để chứa các bit trạng thái lần lượt là `start` và `end`. Transfer đầu tiên có bit trạng thái `start = 1`, transfer cuối cùng có bit trạng thái `end = 1`, còn lại mặc định giá trị trạng thái `start = 0` và `end = 0`. Các bit không dùng tới sẽ mặc định được bỏ qua khi unpack dữ liệu.
+__Kênh OUT__: Khi IP pack chuỗi dữ liệu đầu ra sau encode, sẽ pack cho đủ `DATA_WIDTH` bit mỗi AXI4 transfer rồi truyền lần lượt `OUT_len` transfers. Pack lần lượt chuỗi `ABY1Y2W1W2` đầu ra với chỉ số từ `0 đến Nc-1` theo chiều `MSB đến LSB` của AXI `rdata`. Lưu ý rằng khi pack, các transfer sẽ luôn dư 2 hoặc 4 LSB (tùy theo giá trị của `DATA_WIDTH`), 2 bit LSB sẽ được tận dụng để chứa các bit trạng thái lần lượt là `start` và `end`. Transfer đầu tiên có bit trạng thái `start = 1`, transfer cuối cùng có bit trạng thái `end = 1`, còn lại mặc định giá trị trạng thái `start = 0` và `end = 0`. Các bit không dùng tới sẽ được bỏ qua khi unpack dữ liệu, mặc định IP padding 0's.
 
 <p id="equ-INP_len"></p>
 
@@ -161,7 +161,7 @@ _Transfer #5_
 
 ### Độ sâu các FIFO INP, CFG, OUT
 
-Trong thiết kế Turbo Encoder IP, để hỗ trợ lên tới 3 lần đẩy dữ liệu cần encode liên tiếp với block size 600 (`K = 3`) và DATA_WIDTH = 64:
+Trong thiết kế Turbo Encoder IP, để hỗ trợ lên tới 3 lần đẩy dữ liệu cần encode liên tiếp với block size 600 và DATA_WIDTH = 64:
 - CFG_depth = 341
 - INP_depth = 225
 - OUT_depth = 720
@@ -292,5 +292,14 @@ Với `BLK_SIZE = 6`, ta cần pack thành `OUT_len = 3` dữ liệu vào _FIFO 
 
 </details>
 
+# Notes for Verification
 
+## VCS
+
+Check [\<SourceFolder\>/WimaxTurbo/VCS/TurboEnc/file_list]() path for file lists, including __verilog.f__ and __vhdl.f__.
+
+|Source type|File list|VCS recommended options|
+|-|-|-|
+|Verilog|verilog.f|__-sverilog +v2k__
+|VHDL|vhdl.f|__-nc -vhdl08__
 
