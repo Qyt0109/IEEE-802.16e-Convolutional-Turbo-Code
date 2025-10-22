@@ -117,7 +117,7 @@ OUT_len = ceil(
 )
 ```
 
-#### Ví dụ: AXI bus width = 32, cần encode chuỗi dữ liệu 48 bit (block size = 6) 
+#### Ví dụ: AXI bus width = 64, cần encode chuỗi dữ liệu 144 bit (block size = 18)
 
 ![](./wave/axi4_turbo_enc_example_wave.png)
 
@@ -125,39 +125,30 @@ __Cần thực hiện:__
 
 _B1: Gửi CFG_
 
-Gửi dữ liệu thiết lập cho lần encode này với giá trị block size = 6.
+Gửi dữ liệu thiết lập cho lần encode này với giá trị block size = 18.
 
-![](./wave/reg_enc_cfg.png)
+![](./img/reg_enc_cfg.png)
 
 _B2: Gửi inp_
 
-Gửi 48 bit của chuỗi dữ liệu cần encode sử dụng 2 AXI4 transfer 32 bit. Các cặp dữ liệu đầu vào `AB` (2 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 32 bit transfer.
+Gửi 144 bit của chuỗi dữ liệu cần encode sử dụng 3 AXI4 transfer 64 bit. Các cặp dữ liệu đầu vào `AB` (2 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 64 bit transfer.
 
-_Transfer #1_:
-
-![](./wave/reg_enc_inp.png)
-
-_Transfer #2_:
-
-![](./wave/reg_enc_inp2.png)
+|Transfer|wdata|
+|:-:|:-:|
+|#1|![](./img/reg_enc_inp.png)|
+|#2|![](./img/reg_enc_inp.png)|
+|#3|![](./img/reg_enc_inp_last.png)|
 
 _B3: Nhận out_
 
-Nhận 144 bit của chuỗi dữ liệu sau encode sử dụng 5 AXI4 transfer 32 bit. Các tập dữ liệu đầu ra `ABY1Y2W1W2` (6 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 32 bit transfer. Transfer đầu tiên có bit trạng thái `start = 1`, transfer cuối cùng có bit trạng thái `end = 1`, còn lại mặc định giá trị trạng thái `start = 0` và `end = 0`.
+Nhận 432 bit của chuỗi dữ liệu sau encode sử dụng 8 AXI4 transfer 64 bit. Các tập dữ liệu đầu ra `ABY1Y2W1W2` (6 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 64 bit transfer. Transfer đầu tiên có bit trạng thái `start = 1`, transfer cuối cùng có bit trạng thái `end = 1`, còn lại mặc định giá trị trạng thái `start = 0` và `end = 0`.
 
-_Transfer #1_
-
-![](./wave/reg_enc_out1.png)
-
-_Transfer #2_
-
-![](./wave/reg_enc_out2.png)
-
-...
-
-_Transfer #5_
-
-![](./wave/reg_enc_outlast.png)
+|Transfer|rdata|start|end|
+|:-:|:-:|:-:|:-:|
+|#1|![](./img/reg_enc_out.png)|1|0|
+|#2|![](./img/reg_enc_out.png)|0|0|
+|...|![](./img/reg_enc_out.png)|0|0|
+|#8|![](./img/reg_enc_out_last.png)|0|1|
 
 ### Độ sâu các FIFO INP, CFG, OUT
 

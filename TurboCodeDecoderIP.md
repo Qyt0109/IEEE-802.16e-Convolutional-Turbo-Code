@@ -139,23 +139,23 @@ __B2: Gửi inp__
 
 Gửi chuỗi LLR cần decode sử dụng 96 AXI4 transfer 64 bit. Các LLR đầu vào `ABY1Y2W1W2` (48 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của các transfer.
 
-|Transfer index|wdata|
+|Transfer|wdata|
 |:-:|:-:|
-|[0]|![](./img/reg_dec_inp.png)|
-|[1]|![](./img/reg_dec_inp.png)|
+|#1|![](./img/reg_dec_inp.png)|
+|#2|![](./img/reg_dec_inp.png)|
 |...|![](./img/reg_dec_inp.png)|
-|[95]|![](./img/reg_dec_inp.png)|
+|#96|![](./img/reg_dec_inp.png)|
 
 __B3: Nhận out__
 
 Nhận 192 bit của chuỗi dữ liệu sau decode sử dụng 4 AXI4 transfer 64 bit. Các chuỗi dữ liệu đầu ra sau giải mã `AB` (2 bit/mẫu) với index từ `0 đến Nc-1` sẽ được packed lại theo chiều `MSB tới LSB` của 64 bit transfer, lưu ý 2 bit LSB cho trạng thái `start` và `end`. Transfer đầu tiên có bit trạng thái `start = 1`, transfer cuối cùng có bit trạng thái `end = 1`, còn lại mặc định giá trị trạng thái `start = 0` và `end = 0`.
 
-|Transfer index|rdata|start|end|
+|Transfer|rdata|start|end|
 |:-:|:-:|:-:|:-:|
-|[0]|![](./img/reg_dec_out.png)|1|0|
-|[1]|![](./img/reg_dec_out.png)|0|0|
-|[2]|![](./img/reg_dec_out.png)|0|0|
-|[3]|![](./img/reg_dec_out-last.png)|0|1|
+|#1|![](./img/reg_dec_out.png)|1|0|
+|#2|![](./img/reg_dec_out.png)|0|0|
+|#3|![](./img/reg_dec_out.png)|0|0|
+|#4|![](./img/reg_dec_out-last.png)|0|1|
 
 ### Tính toán độ sâu FIFO
 
